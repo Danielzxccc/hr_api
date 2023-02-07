@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const PORT = 3500
+const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const session = require('express-session')
 const requireAuth = require('./middleware/requireAuth')
@@ -9,6 +10,7 @@ const requireAuth = require('./middleware/requireAuth')
 //middlewares
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+app.use(cors())
 app.use(cookieParser())
 
 app.use(
