@@ -1,10 +1,10 @@
-const authModel = require('../models/authModel')
+const { findUser } = require('../models/usersModel')
 const bcrypt = require('bcrypt')
 
 async function authLogin(req, res) {
   const loginDetails = req.body
   try {
-    const results = await authModel.findUsername(loginDetails.username)
+    const results = await findUser({ username: loginDetails.username })
     if (!results.length) {
       res.status(400).json({
         message: 'No username by that name in HR department',

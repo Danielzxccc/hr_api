@@ -5,7 +5,7 @@ const PORT = 3500
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const session = require('express-session')
-const requireAuth = require('./middleware/requireAuth')
+const { requireSession } = require('./middleware/requireAuth')
 
 //middlewares
 app.use(express.json())
@@ -25,7 +25,7 @@ app.use(
   })
 )
 
-app.use('/users', requireAuth.requireSession, require('./routes/usersRoutes'))
+app.use('/users', requireSession, require('./routes/usersRoutes'))
 app.use('/auth', require('./routes/authRoutes'))
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))

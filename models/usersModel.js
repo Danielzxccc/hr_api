@@ -10,31 +10,29 @@ async function create(user) {
   }
 }
 
-async function findAll() {
+async function findUser(filter) {
   try {
-    const data = await client.select().from('users')
+    let query = client('users')
+
+    const data = await query.modify(function (queryBuilder) {
+      if (filter) {
+        for (i in filter) {
+          if (typeof filter[i] === 'object') {
+            queryBuilder.where(
+              filter[i].field,
+              filter[i].operator,
+              filter[i].value
+            )
+          } else {
+            queryBuilder.where(i, filter[i])
+          }
+        }
+      }
+    })
     return data
   } catch (error) {
     throw new ErrorHandler(error.message || "Can't Fetch user!", 400)
   }
 }
 
-async function findOne(field, value) {
-  try {
-    const userObject = { field: value }
-
-    Object.defineProperty(
-      userObject,
-      `${field}`,
-      Object.getOwnPropertyDescriptor(userObject, 'field')
-    )
-    delete userObject['field']
-
-    const data = await client.select().from('users').where(userObject)
-    return data
-  } catch (error) {
-    throw new ErrorHandler(error.message || "Can't Fetch Comments!", 404)
-  }
-}
-
-module.exports = { create, findAll, findOne }
+module.exports = { create, findUser }

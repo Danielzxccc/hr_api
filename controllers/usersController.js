@@ -68,7 +68,7 @@ async function createUser(req, res) {
 
 async function fetchUsers(req, res) {
   try {
-    const users = await usersModel.findAll()
+    const users = await usersModel.findUser(req.body)
     res.status(200).json(users)
   } catch (error) {
     res.status(error.httpCode).json({ error: true, message: error.message })
@@ -78,7 +78,14 @@ async function fetchUsers(req, res) {
 async function fetchOneUser(req, res) {
   try {
     const id = req.params.id
-    const user = await usersModel.findOne('id', id)
+    const queryObject = {
+      query: {
+        field: 'id',
+        operator: '=',
+        value: id,
+      },
+    }
+    const user = await usersModel.findUser(queryObject)
     res.status(200).json(user)
   } catch (error) {
     res.status(error.httpCode).json({ error: true, message: error.message })
