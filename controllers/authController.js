@@ -4,7 +4,10 @@ const bcrypt = require('bcrypt')
 async function authLogin(req, res) {
   const loginDetails = req.body
   try {
-    const results = await findUser({ username: loginDetails.username })
+    const results = await findUser({
+      username: loginDetails.username,
+      department: 'hr',
+    })
     if (!results.length) {
       res.status(400).json({
         message: 'No username by that name in HR department',
