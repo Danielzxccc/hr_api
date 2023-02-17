@@ -16,15 +16,17 @@ CREATE TABLE users(
     CONSTRAINT UC_username UNIQUE (username)
 )
 
-CREATE TABLE profiles(
+CREATE TABLE schedule(
     id SERIAL PRIMARY KEY,
     employeeid INT NOT NULL,
-    
-    CONSTRAINT UC_employee_id UNIQUE (employeeid),
-    CONSTRAINT fk_employee_profile
+    shift_timein TIME,
+    shift_timeout TIME,
+    day VARCHAR(10),
+    CONSTRAINT fk_employee_schedule
         FOREIGN KEY(employeeid)
             REFERENCES users(id)
 )
+
 
 CREATE TABLE hr_employee_logs(
     id SERIAL PRIMARY KEY,
