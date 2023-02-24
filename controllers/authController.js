@@ -35,6 +35,29 @@ async function authLogin(req, res) {
   }
 }
 
+async function authLoginViaCard(req, res) {
+  const { rfid } = req.body
+  try {
+    const results = await findUser({
+      department: 'hr',
+      rfid: rfid,
+    })
+    if (!results.length) {
+      res.status(400).json({
+        message: 'Unauthorized',
+      })
+    } else {
+      req.session.user = results
+      res.status(200).json({
+        message: 'Success',
+        user: req.session.user,
+      })
+    }
+  } catch (error) {
+    res.status(error.httpCode).json({ error: true, message: error.message })
+  }
+}
+
 function refreshToken(req, res) {
   if (req.session.user) {
     res.json({ token: true, user: req.session.user })
@@ -55,4 +78,4 @@ function logout(req, res) {
   }
 }
 
-module.exports = { authLogin, refreshToken, logout }
+module.exports = { authLogin, refreshToken, logout, authLoginViaCard }

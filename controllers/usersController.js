@@ -1,8 +1,19 @@
 const usersModel = require('../models/usersModel')
 const bcrypt = require('bcrypt')
+const fs = require('fs')
+const cloudinary = require('cloudinary').v2
+
+cloudinary.config({
+  cloud_name: 'dgf4rk3en',
+  api_key: '184696318166934',
+  api_secret: 'UhXiDPl058kvgZy7K-_dGaB4AQ8',
+})
 
 async function createUser(req, res) {
   try {
+    const file = req.file
+    const jsonData = JSON.parse(req.body.json)
+
     const {
       role,
       username,
@@ -17,9 +28,10 @@ async function createUser(req, res) {
       address,
       email,
       contact,
-    } = req.body
-
-    const checkduplicate = await usersModel.findOne('username', username)
+      rfid,
+    } = jsonData
+    const checkduplicate = await usersModel.findUser({ username: username })
+    const checkRFID = await usersModel.findUser({ rfid: rfid })
     if (
       !role ||
       !username ||
@@ -33,36 +45,53 @@ async function createUser(req, res) {
       !birthdate ||
       !address ||
       !email ||
-      !contact
+      !contact ||
+      !rfid
     ) {
       res.status(400).json({ error: true, message: 'All fields are required' })
     } else if (checkduplicate.length) {
       res.status(409).json({ error: true, message: 'Username already exists' })
+    } else if (checkRFID.length) {
+      res.status(409).json({ error: true, message: 'RFID already exists' })
     } else {
-      const hashedPwd = await bcrypt.hash(password, 10)
-      const userObject = {
-        role: role,
-        username: username,
-        password: hashedPwd,
-        department: department,
-        scheduletype: scheduletype,
-        rateperhour: rateperhour,
-        status: status,
-        fullname: fullname,
-        birthdate: birthdate,
-        address: address,
-        email: email,
-        contact: contact,
-      }
+      if (file) {
+        const upload = await cloudinary.uploader.upload(file.path)
+        const hashedPwd = await bcrypt.hash(password, 10)
+        const userObject = {
+          role: role,
+          username: username,
+          password: hashedPwd,
+          department: department,
+          scheduletype: scheduletype,
+          rateperhour: rateperhour,
+          status: status,
+          fullname: fullname,
+          birthdate: birthdate,
+          address: address,
+          email: email,
+          contact: contact,
+          imgurl: upload.url,
+        }
 
-      const insert = await usersModel.create(userObject)
-      res.status(201).json({
-        message: 'Employee was created',
-        user: insert,
-      })
+        const insert = await usersModel.create(userObject)
+
+        res.status(201).json({
+          message: 'Employee was created',
+          user: insert,
+        })
+      } else {
+        res.status(400).json({ message: 'Image is required' })
+      }
     }
+    //delete temporary files
+    fs.unlink(file.path, (err) => {
+      if (err) console.log(err)
+      console.log('Tenmpfile deleted successfully!')
+    })
   } catch (error) {
-    res.status(error.httpCode).json({ error: true, message: error.message })
+    res
+      .status(400 || error.httpCode)
+      .json({ error: true, message: error.message })
   }
 }
 
@@ -92,4 +121,37 @@ async function fetchOneUser(req, res) {
   }
 }
 
-module.exports = { createUser, fetchUsers, fetchOneUser }
+async function fetchUserLogs(req, res) {
+  try {
+    const users = await usersModel.findLogs()
+    res.status(200).json(users)
+  } catch (error) {
+    res.status(error.httpCode).json({ error: true, message: error.message })
+  }
+}
+
+async function uploadImage(req, res) {
+  try {
+    const file = req.file
+    const upload = await cloudinary.uploader.upload(file.path)
+
+    //delete temporary files
+    fs.unlink(file.path, (err) => {
+      if (err) console.log(err)
+      console.log('Temp file deleted successfully!')
+    })
+
+    res.json({ url: upload.url })
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ error: true, message: error.message })
+  }
+}
+
+module.exports = {
+  createUser,
+  fetchUsers,
+  fetchOneUser,
+  fetchUserLogs,
+  uploadImage,
+}
