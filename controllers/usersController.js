@@ -1,6 +1,7 @@
 const usersModel = require('../models/usersModel')
 const bcrypt = require('bcrypt')
 const fs = require('fs')
+const { error } = require('console')
 const cloudinary = require('cloudinary').v2
 
 cloudinary.config({
@@ -91,6 +92,18 @@ async function createUser(req, res) {
   } catch (error) {
     res
       .status(400 || error.httpCode)
+      .json({ error: true, message: error.message })
+  }
+}
+
+async function updateUser(req, res) {
+  const id = req.params.id
+  try {
+    const update = await usersModel.update(id, req.body)
+    res.status(200).json({ message: 'Updated Successfully' })
+  } catch (error) {
+    res
+      .status(error.httpCode || 400)
       .json({ error: true, message: error.message })
   }
 }

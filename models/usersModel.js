@@ -18,15 +18,33 @@ async function findUser(filter) {
       if (filter) {
         for (i in filter) {
           if (typeof filter[i] === 'object') {
-            queryBuilder
-              .where(filter[i].field, filter[i].operator, filter[i].value)
-              .orderBy('id')
+            queryBuilder.where(
+              filter[i].field,
+              filter[i].operator,
+              filter[i].value
+            )
           } else {
             queryBuilder.where(i, filter[i])
           }
         }
+        queryBuilder.orderBy('id')
       }
     })
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't Fetch user!", 400)
+  }
+}
+
+async function findEmployee(rfid) {
+  try {
+    const data = await client('users')
+      .whereNot({
+        department: 'hr',
+      })
+      .andWhere({
+        rfid: rfid,
+      })
     return data
   } catch (error) {
     throw new ErrorHandler(error.message || "Can't Fetch user!", 400)
@@ -79,5 +97,12 @@ async function findLogs() {
     throw new ErrorHandler(error.message || "Can't Fetch user!", 400)
   }
 }
-
-module.exports = { create, findUser, findLogs }
+async function update(id, user) {
+  try {
+    const data = client('users').where({ id: id }).update(user).returning('*')
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't Update user!", 400)
+  }
+}
+module.exports = { create, findUser, findEmployee, update, findLogs }
