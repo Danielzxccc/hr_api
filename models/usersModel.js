@@ -97,6 +97,7 @@ async function findLogs() {
     throw new ErrorHandler(error.message || "Can't Fetch user!", 400)
   }
 }
+
 async function update(id, user) {
   try {
     const data = client('users').where({ id: id }).update(user).returning('*')
@@ -105,4 +106,24 @@ async function update(id, user) {
     throw new ErrorHandler(error.message || "Can't Update user!", 400)
   }
 }
-module.exports = { create, findUser, findEmployee, update, findLogs }
+
+async function createSchedule(schedule) {
+  try {
+    const data = await client
+      .insert(schedule)
+      .into('hr_schedule')
+      .returning('*')
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't create schedule!", 400)
+  }
+}
+
+module.exports = {
+  create,
+  findUser,
+  findEmployee,
+  update,
+  findLogs,
+  createSchedule,
+}

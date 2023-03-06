@@ -27,4 +27,33 @@ async function checkDay(id) {
   }
 }
 
-module.exports = { createLog, checkDay }
+async function checkTime(id) {
+  try {
+    const currentTime = new Date()
+    const options = {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }
+
+    const data = await client('hr_schedule')
+      .where(
+        'shift_timein',
+        '<=',
+        currentTime.toLocaleTimeString('en-US', options)
+        // '11:00:00'
+      )
+      .andWhere(
+        'shift_timeout',
+        '>=',
+        currentTime.toLocaleTimeString('en-US', options)
+        // '11:00:00'
+      )
+      .andWhere('employeeid', id)
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't find time", 401)
+  }
+}
+module.exports = { createLog, checkDay, checkTime }

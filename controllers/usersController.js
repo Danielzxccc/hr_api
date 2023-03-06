@@ -2,6 +2,7 @@ const usersModel = require('../models/usersModel')
 const bcrypt = require('bcrypt')
 const fs = require('fs')
 const { error } = require('console')
+const client = require('../config/dbConfig')
 const cloudinary = require('cloudinary').v2
 
 cloudinary.config({
@@ -14,7 +15,6 @@ async function createUser(req, res) {
   try {
     const file = req.file
     const jsonData = JSON.parse(req.body.json)
-
     const {
       role,
       username,
@@ -30,6 +30,9 @@ async function createUser(req, res) {
       email,
       contact,
       rfid,
+      shift_timein,
+      shift_timeout,
+      dayoff,
     } = jsonData
     const checkduplicate = await usersModel.findUser({ username: username })
     const checkRFID = await usersModel.findUser({ rfid: rfid })
@@ -56,29 +59,42 @@ async function createUser(req, res) {
       res.status(409).json({ error: true, message: 'RFID already exists' })
     } else {
       if (file) {
-        const upload = await cloudinary.uploader.upload(file.path)
+        const upload = await cloudinary.uploader.upload(file.path, {
+          public_id: rfid,
+        })
         const hashedPwd = await bcrypt.hash(password, 10)
         const userObject = {
-          role: role,
-          username: username,
+          role,
+          username,
           password: hashedPwd,
-          department: department,
-          scheduletype: scheduletype,
-          rateperhour: rateperhour,
-          status: status,
-          fullname: fullname,
-          birthdate: birthdate,
-          address: address,
-          email: email,
-          contact: contact,
+          department,
+          scheduletype,
+          rateperhour,
+          status,
+          fullname,
+          birthdate,
+          address,
+          email,
+          contact,
           imgurl: upload.url,
+          rfid,
+          dayoff,
         }
 
         const insert = await usersModel.create(userObject)
 
+        const scheduleObject = {
+          employeeid: insert[0].id,
+          shift_timein,
+          shift_timeout,
+        }
+
+        const schedule = await usersModel.createSchedule(scheduleObject)
+
         res.status(201).json({
           message: 'Employee was created',
           user: insert,
+          schedule,
         })
       } else {
         res.status(400).json({ message: 'Image is required' })
