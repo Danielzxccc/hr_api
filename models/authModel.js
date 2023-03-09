@@ -1,4 +1,5 @@
 const client = require('../config/dbConfig')
+const { getTime } = require('../utils/getCurrentTime')
 const ErrorHandler = require('../helpers/errorHandler')
 
 async function createLog(id) {
@@ -27,27 +28,42 @@ async function checkDay(id) {
   }
 }
 
+async function findTimeIn(id) {
+  try {
+    const data = await client('hr_employee_logs')
+      .whereRaw('log_date = CURRENT_DATE')
+      .andWhere({ employeeid: id })
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't find timed in", 400)
+  }
+}
+
+async function addTimeOut(id) {
+  try {
+    await client.raw(
+      'UPDATE hr_employee_logs SET time_out = CURRENT_TIMESTAMP WHERE log_date = CURRENT_DATE AND employeeid = ?',
+      [id]
+    )
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't add timed out", 400)
+  }
+}
+
 async function checkTime(id) {
   try {
-    const currentTime = new Date()
-    const options = {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }
 
     const data = await client('hr_schedule')
       .where(
         'shift_timein',
         '<=',
-        currentTime.toLocaleTimeString('en-US', options)
+        getTime()
         // '11:00:00'
       )
       .andWhere(
         'shift_timeout',
         '>=',
-        currentTime.toLocaleTimeString('en-US', options)
+        getTime()
         // '11:00:00'
       )
       .andWhere('employeeid', id)
@@ -56,4 +72,4 @@ async function checkTime(id) {
     throw new ErrorHandler(error.message || "Can't find time", 401)
   }
 }
-module.exports = { createLog, checkDay, checkTime }
+module.exports = { createLog, checkDay, checkTime, findTimeIn, addTimeOut }

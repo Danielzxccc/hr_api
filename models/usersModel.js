@@ -27,7 +27,18 @@ async function findUser(filter) {
             queryBuilder.where(i, filter[i])
           }
         }
-        queryBuilder.orderBy('id')
+        queryBuilder.leftJoin(
+          'hr_schedule',
+          'users.id',
+          '=',
+          'hr_schedule.employeeid'
+        )
+        queryBuilder.select(
+          'users.*',
+          'hr_schedule.shift_timein',
+          'hr_schedule.shift_timeout'
+        )
+        queryBuilder.orderBy('users.id')
       }
     })
     return data

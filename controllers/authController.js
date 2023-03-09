@@ -1,5 +1,12 @@
-const { findUser, findEmployee } = require('../models/usersModel')
-const { createLog, checkDay, checkTime } = require('../models/authModel')
+const { findUser } = require('../models/usersModel')
+const {
+  createLog,
+  checkDay,
+  checkTime,
+  findTimeIn,
+  addTimeOut,
+} = require('../models/authModel')
+const { getTime, createDateObject } = require('../utils/getCurrentTime')
 const bcrypt = require('bcrypt')
 
 async function authLogin(req, res) {
@@ -68,21 +75,23 @@ async function authLoginViaCard(req, res) {
           'Friday',
           'Saturday',
         ]
-        const today = new Date().getDay() // returns a number between 0 and 6, where 0 is Sunday
+        const today = new Date().getDay()
 
         const currentDay = daysOfWeek[today]
 
         if (!checkLogs.length) {
           if (results[0].dayoff?.includes(currentDay)) {
-            res.status(400).json({ error: true, message: 'You are on dayoff' })
+            res
+              .status(400)
+              .json({ error: true, message: 'You are on day off.' })
           } else if (!checkTimeIn.length) {
             res
               .status(400)
-              .json({ error: true, message: 'You are not on your shift' })
+              .json({ error: true, message: 'You are not on your shift.' })
           } else {
             const generateLog = await createLog(results[0].id)
             res.status(201).json({
-              message: `Successfully timed in as ${results[0].fullname}`,
+              message: `Successfully timed in as ${results[0].fullname}.`,
               data: generateLog[0],
             })
           }
@@ -97,35 +106,49 @@ async function authLoginViaCard(req, res) {
   } catch (error) {
     res
       .status(error.httpCode || 400)
-      .json({ error: true, message: error.message + ' test' })
+      .json({ error: true, message: error.message })
   }
 }
 
-async function timeIn(req, res) {
+async function timeout(req, res) {
+  const { rfid, isConfirmed } = req.body
   try {
-    const rfid = req.body.rfid
-    console.log(rfid)
-    const results = await findEmployee(rfid)
+    const results = await findUser({ rfid: rfid })
 
     if (!results.length) {
-      res.status(400).json({
-        message: 'Unauthorized',
-      })
+      res.status(400).json({ error: true, message: 'Unauthorized' })
     } else {
-      const checkLogs = await checkDay(results[0].id)
-
-      if (!checkLogs.length) {
-        const generateLog = await createLog(results[0].id)
-        res.status(201).json({ message: 'Success', data: generateLog[0] })
+      const timeIn = await findTimeIn(results[0].id)
+      if (!timeIn.length) {
+        res
+          .status(400)
+          .json({ error: true, message: 'You are not logged in yet' })
       } else {
-        res.status(400).json({
-          error: true,
-          message: `Successfully timed in as ${results[0].fullname}`,
-        })
+        const currentTime = createDateObject(getTime())
+        const shiftOut = createDateObject(results[0].shift_timeout)
+        if (timeIn[0].time_out !== null) {
+          res
+            .status(401)
+            .json({ error: true, message: 'You Already Logged Out' })
+        } else if (shiftOut <= currentTime) {
+          await addTimeOut(results[0].id)
+          res.status(200).json({ message: 'Successfully Logged Out' })
+        } else {
+          if (isConfirmed) {
+            await addTimeOut(results[0].id)
+            res.status(200).json({ message: 'Successfully Logged Out' })
+          } else {
+            res
+              .status(403)
+              .json({ error: true, message: 'You are too early to log out' })
+          }
+        }
       }
     }
   } catch (error) {
-    res.status(error.httpCode).json({ error: true, message: error.message })
+    res
+      .status(error.httpCode || 400)
+      .json({ error: true, message: error.message })
   }
 }
 
@@ -149,4 +172,4 @@ function logout(req, res) {
   }
 }
 
-module.exports = { authLogin, refreshToken, logout, authLoginViaCard, timeIn }
+module.exports = { authLogin, refreshToken, logout, authLoginViaCard, timeout }
