@@ -103,12 +103,82 @@ async function createUser(req, res) {
 async function updateUser(req, res) {
   const id = req.params.id
   try {
-    const update = await usersModel.update(id, req.body)
-    res.status(200).json({ message: 'Updated Successfully' })
+    const file = req.file
+    const jsonData = JSON.parse(req.body.json)
+    const {
+      role,
+      username,
+      department,
+      rateperhour,
+      status,
+      active,
+      fullname,
+      birthdate,
+      address,
+      email,
+      contact,
+      rfid,
+      imgurl,
+      schedule,
+    } = jsonData
+
+    if (
+      !username ||
+      !department ||
+      !rateperhour ||
+      !status ||
+      !active ||
+      !fullname ||
+      !birthdate ||
+      !address ||
+      !email ||
+      !contact ||
+      !rfid
+    ) {
+      res.status(400).json({ error: true, message: 'All fields are required' })
+    } else {
+      let url
+      if (file) {
+        const upload = await cloudinary.uploader.upload(file.path, {
+          public_id: rfid,
+        })
+        url = upload.url
+      }
+
+      const userObject = {
+        role,
+        username,
+        department,
+        rateperhour,
+        status,
+        fullname,
+        birthdate,
+        address,
+        email,
+        contact,
+        imgurl: url ? url : imgurl,
+        rfid,
+        schedule,
+      }
+
+      const update = await usersModel.update(id, userObject)
+
+      res.status(201).json({
+        message: 'Employee has been updated',
+        user: update,
+      })
+
+      if (file) {
+        fs.unlink(file.path, (err) => {
+          if (err) console.log(err)
+          console.log('Tenmpfile deleted successfully!')
+        })
+      }
+    }
   } catch (error) {
     res
-      .status(error.httpCode || 400)
-      .json({ error: true, message: error.message })
+      .status(error.httpCode || 500)
+      .json({ error: true, message: 'Username or RFID already exists.' })
   }
 }
 
@@ -200,6 +270,7 @@ async function uploadImage(req, res) {
 
 module.exports = {
   createUser,
+  updateUser,
   fetchUsers,
   fetchOneUser,
   fetchUserLogs,
