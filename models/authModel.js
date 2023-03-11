@@ -50,26 +50,4 @@ async function addTimeOut(id) {
   }
 }
 
-async function checkTime(id) {
-  try {
-
-    const data = await client('hr_schedule')
-      .where(
-        'shift_timein',
-        '<=',
-        getTime()
-        // '11:00:00'
-      )
-      .andWhere(
-        'shift_timeout',
-        '>=',
-        getTime()
-        // '11:00:00'
-      )
-      .andWhere('employeeid', id)
-    return data
-  } catch (error) {
-    throw new ErrorHandler(error.message || "Can't find time", 401)
-  }
-}
-module.exports = { createLog, checkDay, checkTime, findTimeIn, addTimeOut }
+module.exports = { createLog, checkDay, findTimeIn, addTimeOut }

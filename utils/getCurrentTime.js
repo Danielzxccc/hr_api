@@ -16,4 +16,20 @@ function createDateObject(time) {
   const dateObject = new Date(`2000-01-01T${time}Z`)
   return dateObject
 }
-module.exports = { getTime, createDateObject }
+
+function getCurrentDay() {
+  const daysOfWeek = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ]
+  const today = new Date().getDay()
+
+  const currentDay = daysOfWeek[today]
+  return currentDay
+}
+module.exports = { getTime, createDateObject, getCurrentDay }

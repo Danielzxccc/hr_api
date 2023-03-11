@@ -27,18 +27,7 @@ async function findUser(filter) {
             queryBuilder.where(i, filter[i])
           }
         }
-        queryBuilder.leftJoin(
-          'hr_schedule',
-          'users.id',
-          '=',
-          'hr_schedule.employeeid'
-        )
-        queryBuilder.select(
-          'users.*',
-          'hr_schedule.shift_timein',
-          'hr_schedule.shift_timeout'
-        )
-        queryBuilder.orderBy('users.id')
+        queryBuilder.orderBy('id')
       }
     })
     return data
@@ -118,13 +107,36 @@ async function update(id, user) {
   }
 }
 
-async function createSchedule(schedule) {
+async function archive(id) {
   try {
-    const data = await client
-      .insert(schedule)
-      .into('hr_schedule')
+    const data = await client('users')
+      .where({ id: id })
+      .update({ active: 0 })
       .returning('*')
     return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't archive user!", 400)
+  }
+}
+
+async function unarchive(id) {
+  try {
+    const data = await client('users')
+      .where({ id: id })
+      .update({ active: 1 })
+      .returning('*')
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't unarchive user!", 400)
+  }
+}
+
+async function createSchedule(schedule, id) {
+  try {
+    await client.raw('UPDATE users set schedule = ?::json WHERE id = ?', [
+      schedule,
+      id,
+    ])
   } catch (error) {
     throw new ErrorHandler(error.message || "Can't create schedule!", 400)
   }
@@ -136,5 +148,7 @@ module.exports = {
   findEmployee,
   update,
   findLogs,
+  archive,
   createSchedule,
+  unarchive,
 }

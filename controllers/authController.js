@@ -2,11 +2,14 @@ const { findUser } = require('../models/usersModel')
 const {
   createLog,
   checkDay,
-  checkTime,
   findTimeIn,
   addTimeOut,
 } = require('../models/authModel')
-const { getTime, createDateObject } = require('../utils/getCurrentTime')
+const {
+  getTime,
+  createDateObject,
+  getCurrentDay,
+} = require('../utils/getCurrentTime')
 const bcrypt = require('bcrypt')
 
 async function authLogin(req, res) {
@@ -48,6 +51,7 @@ async function authLoginViaCard(req, res) {
   try {
     const results = await findUser({
       rfid: rfid,
+      active: 1,
     })
 
     if (!results.length) {
@@ -63,37 +67,40 @@ async function authLoginViaCard(req, res) {
         })
       } else {
         const checkLogs = await checkDay(results[0].id)
-        const checkTimeIn = await checkTime(results[0].id)
 
-        //get cuurent day
-        const daysOfWeek = [
-          'Sunday',
-          'Monday',
-          'Tuesday',
-          'Wednesday',
-          'Thursday',
-          'Friday',
-          'Saturday',
-        ]
-        const today = new Date().getDay()
+        const currentDay = getCurrentDay()
 
-        const currentDay = daysOfWeek[today]
+        let shift_timein
+        let shift_timeout
+
+        function getCurrentSchedule() {
+          const schedule = results[0].schedule.filter(
+            (item) => item.day === currentDay
+          )
+          shift_timein = schedule.shift_timein
+          shift_timeout = schedule.shift_timeout
+        }
+
+        getCurrentSchedule()
 
         if (!checkLogs.length) {
-          if (results[0].dayoff?.includes(currentDay)) {
-            res
-              .status(400)
-              .json({ error: true, message: 'You are on day off.' })
-          } else if (!checkTimeIn.length) {
-            res
-              .status(400)
-              .json({ error: true, message: 'You are not on your shift.' })
-          } else {
+          if (results[0].schedule?.some((item) => item.day === currentDay)) {
             const generateLog = await createLog(results[0].id)
             res.status(201).json({
               message: `Successfully timed in as ${results[0].fullname}.`,
               data: generateLog[0],
             })
+          } else if (
+            createDateObject(shift_timein) <= createDateObject(getTime()) &&
+            createDateObject(shift_timeout) >= createDateObject(getTime())
+          ) {
+            res
+              .status(400)
+              .json({ error: true, message: 'You are not on your shift.' })
+          } else {
+            res
+              .status(400)
+              .json({ error: true, message: 'You are on day off.' })
           }
         } else {
           res.status(400).json({
@@ -113,7 +120,21 @@ async function authLoginViaCard(req, res) {
 async function timeout(req, res) {
   const { rfid, isConfirmed } = req.body
   try {
-    const results = await findUser({ rfid: rfid })
+    const results = await findUser({ rfid: rfid, active: 1 })
+
+    const currentDay = getCurrentDay()
+    let shift_timein
+    let shift_timeout
+
+    function getCurrentSchedule() {
+      const schedule = results[0].schedule.filter(
+        (item) => item.day === currentDay
+      )
+      shift_timein = schedule.shift_timein
+      shift_timeout = schedule.shift_timeout
+    }
+
+    getCurrentSchedule()
 
     if (!results.length) {
       res.status(400).json({ error: true, message: 'Unauthorized' })
@@ -125,7 +146,7 @@ async function timeout(req, res) {
           .json({ error: true, message: 'You are not logged in yet' })
       } else {
         const currentTime = createDateObject(getTime())
-        const shiftOut = createDateObject(results[0].shift_timeout)
+        const shiftOut = createDateObject(shift_timeout)
         if (timeIn[0].time_out !== null) {
           res
             .status(401)

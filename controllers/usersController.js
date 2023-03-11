@@ -1,8 +1,6 @@
 const usersModel = require('../models/usersModel')
 const bcrypt = require('bcrypt')
 const fs = require('fs')
-const { error } = require('console')
-const client = require('../config/dbConfig')
 const cloudinary = require('cloudinary').v2
 
 cloudinary.config({
@@ -30,9 +28,7 @@ async function createUser(req, res) {
       email,
       contact,
       rfid,
-      shift_timein,
-      shift_timeout,
-      dayoff,
+      schedule,
     } = jsonData
     const checkduplicate = await usersModel.findUser({ username: username })
     const checkRFID = await usersModel.findUser({ rfid: rfid })
@@ -62,6 +58,8 @@ async function createUser(req, res) {
         const upload = await cloudinary.uploader.upload(file.path, {
           public_id: rfid,
         })
+        //delete temporary files
+
         const hashedPwd = await bcrypt.hash(password, 10)
         const userObject = {
           role,
@@ -78,33 +76,23 @@ async function createUser(req, res) {
           contact,
           imgurl: upload.url,
           rfid,
-          dayoff,
+          schedule,
         }
 
         const insert = await usersModel.create(userObject)
 
-        const scheduleObject = {
-          employeeid: insert[0].id,
-          shift_timein,
-          shift_timeout,
-        }
-
-        const schedule = await usersModel.createSchedule(scheduleObject)
-
         res.status(201).json({
           message: 'Employee was created',
           user: insert,
-          schedule,
         })
       } else {
         res.status(400).json({ message: 'Image is required' })
       }
+      fs.unlink(file.path, (err) => {
+        if (err) console.log(err)
+        console.log('Tenmpfile deleted successfully!')
+      })
     }
-    //delete temporary files
-    fs.unlink(file.path, (err) => {
-      if (err) console.log(err)
-      console.log('Tenmpfile deleted successfully!')
-    })
   } catch (error) {
     res
       .status(400 || error.httpCode)
@@ -126,8 +114,41 @@ async function updateUser(req, res) {
 
 async function fetchUsers(req, res) {
   try {
-    const users = await usersModel.findUser(req.body)
+    const users = await usersModel.findUser({ active: 1 })
     res.status(200).json(users)
+  } catch (error) {
+    res.status(error.httpCode).json({ error: true, message: error.message })
+  }
+}
+
+async function fetchArchiveEmployees(req, res) {
+  try {
+    const users = await usersModel.findUser({ active: 0 })
+    res.status(200).json(users)
+  } catch (error) {
+    res.status(error.httpCode).json({ error: true, message: error.message })
+  }
+}
+
+async function archiveEmployee(req, res) {
+  const id = req.params.id
+  try {
+    const archivedUser = await usersModel.archive(id)
+    res.status(201).json({
+      message: `Employee ${archivedUser[0].fullname} has been archived`,
+    })
+  } catch (error) {
+    res.status(error.httpCode).json({ error: true, message: error.message })
+  }
+}
+
+async function unarchiveEmployee(req, res) {
+  const id = req.params.id
+  try {
+    const unarchiveUser = await usersModel.unarchive(id)
+    res.status(200).json({
+      message: `Successfully unarchived ${unarchiveUser[0].fullname}.`,
+    })
   } catch (error) {
     res.status(error.httpCode).json({ error: true, message: error.message })
   }
@@ -183,4 +204,7 @@ module.exports = {
   fetchOneUser,
   fetchUserLogs,
   uploadImage,
+  fetchArchiveEmployees,
+  unarchiveEmployee,
+  archiveEmployee,
 }
