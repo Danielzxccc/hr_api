@@ -46,6 +46,33 @@ async function authLogin(req, res) {
   }
 }
 
+async function authAdminCard(req, res) {
+  const { rfid } = req.body
+  try {
+    const results = await findUser({
+      rfid: rfid,
+      department: 'hr',
+      active: 1,
+    })
+
+    if (!results.length) {
+      res.status(400).json({
+        message: 'Unauthorized',
+      })
+    } else {
+      req.session.user = results
+      res.status(200).json({
+        message: 'Success',
+        user: req.session.user,
+      })
+    }
+  } catch (error) {
+    res
+      .status(error.httpCode || 400)
+      .json({ error: true, message: error.message })
+  }
+}
+
 async function authLoginViaCard(req, res) {
   const { rfid } = req.body
   try {
@@ -55,60 +82,56 @@ async function authLoginViaCard(req, res) {
     })
 
     if (!results.length) {
-      res.status(400).json({
+      return res.status(400).json({
         message: 'Unauthorized',
       })
-    } else {
-      if (results[0].department === 'hr') {
-        req.session.user = results
-        res.status(200).json({
-          message: 'Success',
-          user: req.session.user,
+    }
+
+    if (!results[0].schedule)
+      return res.status(400).json({
+        error: true,
+        message: 'You dont have a schedule',
+      })
+
+    const checkLogs = await checkDay(results[0].id)
+
+    const currentDay = getCurrentDay()
+
+    let shift_timein
+    let shift_timeout
+
+    function getCurrentSchedule() {
+      const schedule = results[0]?.schedule.filter(
+        (item) => item.day === currentDay
+      )
+      shift_timein = schedule.shift_timein
+      shift_timeout = schedule.shift_timeout
+    }
+
+    getCurrentSchedule()
+
+    if (!checkLogs.length) {
+      if (results[0].schedule.some((item) => item.day === currentDay)) {
+        const generateLog = await createLog(results[0].id)
+        res.status(201).json({
+          message: `Successfully timed in as ${results[0].fullname}.`,
+          data: generateLog[0],
         })
+      } else if (
+        createDateObject(shift_timein) <= createDateObject(getTime()) &&
+        createDateObject(shift_timeout) >= createDateObject(getTime())
+      ) {
+        res
+          .status(400)
+          .json({ error: true, message: 'You are not on your shift.' })
       } else {
-        const checkLogs = await checkDay(results[0].id)
-
-        const currentDay = getCurrentDay()
-
-        let shift_timein
-        let shift_timeout
-
-        function getCurrentSchedule() {
-          const schedule = results[0].schedule.filter(
-            (item) => item.day === currentDay
-          )
-          shift_timein = schedule.shift_timein
-          shift_timeout = schedule.shift_timeout
-        }
-
-        getCurrentSchedule()
-
-        if (!checkLogs.length) {
-          if (results[0].schedule?.some((item) => item.day === currentDay)) {
-            const generateLog = await createLog(results[0].id)
-            res.status(201).json({
-              message: `Successfully timed in as ${results[0].fullname}.`,
-              data: generateLog[0],
-            })
-          } else if (
-            createDateObject(shift_timein) <= createDateObject(getTime()) &&
-            createDateObject(shift_timeout) >= createDateObject(getTime())
-          ) {
-            res
-              .status(400)
-              .json({ error: true, message: 'You are not on your shift.' })
-          } else {
-            res
-              .status(400)
-              .json({ error: true, message: 'You are on day off.' })
-          }
-        } else {
-          res.status(400).json({
-            error: true,
-            message: 'Employee already logged in',
-          })
-        }
+        res.status(400).json({ error: true, message: 'You are on day off.' })
       }
+    } else {
+      res.status(400).json({
+        error: true,
+        message: 'Employee already logged in',
+      })
     }
   } catch (error) {
     res
@@ -193,4 +216,11 @@ function logout(req, res) {
   }
 }
 
-module.exports = { authLogin, refreshToken, logout, authLoginViaCard, timeout }
+module.exports = {
+  authLogin,
+  authAdminCard,
+  refreshToken,
+  logout,
+  authLoginViaCard,
+  timeout,
+}

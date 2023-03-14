@@ -4,10 +4,10 @@ const usersController = require('../controllers/usersController')
 const multer = require('multer')
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'tmp/') // specify the directory where the uploaded files will be stored
+    cb(null, 'tmp/')
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname) // specify the naming convention for uploaded files
+    cb(null, Date.now() + '-' + file.originalname)
   },
 })
 const upload = multer({ storage: storage })

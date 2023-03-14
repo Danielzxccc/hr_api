@@ -11,6 +11,7 @@ async function create(user) {
 }
 
 async function findUser(filter) {
+  // console.log(filter)
   try {
     let query = client('users')
 
