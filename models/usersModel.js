@@ -150,12 +150,7 @@ async function createSchedule(schedule, id) {
 async function getEmployeeList() {
   try {
     const employess = await client('users')
-      .select(
-        'users.id',
-        'users.fullname',
-        'hr_payroll.startdate',
-        'hr_payroll.enddate'
-      )
+      .select('users.*', 'hr_payroll.startdate', 'hr_payroll.enddate')
       .leftJoin('hr_payroll', 'users.id', 'hr_payroll.employeeid')
       .orderBy('users.id')
 
