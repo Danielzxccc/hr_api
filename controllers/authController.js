@@ -106,7 +106,6 @@ async function authLoginViaCard(req, res) {
       const schedule = results[0]?.schedule.filter(
         (item) => item.day === currentDay
       )
-      console.log(schedule)
       return schedule.length
         ? [schedule[0].shift_timein, schedule[0].shift_timeout]
         : ['00:00', '00:00']
@@ -115,7 +114,20 @@ async function authLoginViaCard(req, res) {
     const shift_timein = getCurrentSchedule()[0]
     const shift_timeout = getCurrentSchedule()[1]
 
+    // console.log(
+    //   createDateObject(shift_timein) >= createDateObject(getTime()),
+    //   createDateObject(shift_timeout) <= createDateObject(getTime())
+    // )
     if (!checkLogs.length) {
+      if (
+        createDateObject(getTime()) <= createDateObject(shift_timein) ||
+        createDateObject(getTime()) >= createDateObject(shift_timeout)
+      ) {
+        return res
+          .status(400)
+          .json({ error: true, message: 'You are not on your shift.' })
+      }
+
       if (results[0].schedule.some((item) => item.day === currentDay)) {
         const generateLog = await createLog(results[0].id)
         return res.status(201).json({
@@ -124,12 +136,6 @@ async function authLoginViaCard(req, res) {
         })
       } else {
         res.status(400).json({ error: true, message: 'You are on day off.' })
-      }
-
-      if (createDateObject(shift_timein) <= createDateObject(getTime())) {
-        return res
-          .status(400)
-          .json({ error: true, message: 'You are not on your shift.' })
       }
 
       // if (

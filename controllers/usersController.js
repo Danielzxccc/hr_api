@@ -268,9 +268,19 @@ async function uploadImage(req, res) {
   }
 }
 
+async function fetchUnpaidUsers(req, res) {
+  try {
+    const employees = await usersModel.getEmployeeList()
+    res.json(employees)
+  } catch (error) {
+    res.status(400).json({ error: true, message: error.message })
+  }
+}
+
 module.exports = {
   createUser,
   updateUser,
+  fetchUnpaidUsers,
   fetchUsers,
   fetchOneUser,
   fetchUserLogs,

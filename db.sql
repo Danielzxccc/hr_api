@@ -28,8 +28,6 @@ CREATE TABLE schedule(
 )
 
 
-
-
 CREATE TABLE hr_employee_logs(
     id SERIAL PRIMARY KEY,
     employeeid INT NOT NULL,
@@ -37,6 +35,27 @@ CREATE TABLE hr_employee_logs(
     time_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     time_out TIMESTAMP,
     CONSTRAINT fk_employee_logs_id
+        FOREIGN KEY(employeeid)
+            REFERENCES users(id)
+)
+
+CREATE TABLE hr_payroll(
+    id SERIAL PRIMARY KEY,
+    employeeid INT NOT NULL,
+    paydate date NOT NULL,
+    startdate date NOT NULL,
+    enddate date NOT NULL,
+    hoursworked jsonb NOT NULL,
+    overtime jsonb NOT NULL,
+    percupcommision jsonb NOT NULL,
+    grosspay INT NOT NULL,
+    advance INT NOT NULL,
+    bonus INT NOT NULL,
+    sss INT NOT NULL,
+    philhealth INT NOT NULL,
+    pagibig INT NOT NULL,
+    recentadvance INT NOT NULL,
+     CONSTRAINT fk_employee_payroll_id
         FOREIGN KEY(employeeid)
             REFERENCES users(id)
 )
