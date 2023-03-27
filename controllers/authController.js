@@ -103,26 +103,31 @@ async function authLoginViaCard(req, res) {
 
     //get shift hours of the user using the credentials that are sent in request body
     function getCurrentSchedule() {
-      const schedule = results[0].schedule.filter(
+      const schedule = results[0]?.schedule.filter(
         (item) => item.day === currentDay
       )
-      return [schedule[0].shift_timein, schedule[0].shift_timeout]
+      console.log(schedule)
+      return schedule.length
+        ? [schedule[0].shift_timein, schedule[0].shift_timeout]
+        : ['00:00', '00:00']
     }
 
     const shift_timein = getCurrentSchedule()[0]
     const shift_timeout = getCurrentSchedule()[1]
-
-    if (createDateObject(shift_timein) >= createDateObject(getTime())) {
-      return res
-        .status(400)
-        .json({ error: true, message: 'You are not on your shift.' })
-    } else if (createDateObject(shift_timeout) <= createDateObject(getTime())) {
-      return res
-        .status(400)
-        .json({ error: true, message: 'You are not on your shift.' })
-    }
+    const currentTime = createDateObject(getTime())
+    const shiftOut = createDateObject(getCurrentSchedule()[1])
 
     if (!checkLogs.length) {
+
+      if (
+        createDateObject(shift_timein) = currentTime &&
+        createDateObject(shift_timeout) <= currentTime
+      ) {
+        return res
+          .status(400)
+          .json({ error: true, message: 'You are not on your shift.' })
+      }
+      
       if (results[0].schedule.some((item) => item.day === currentDay)) {
         const generateLog = await createLog(results[0].id)
         return res.status(201).json({
@@ -135,9 +140,7 @@ async function authLoginViaCard(req, res) {
       res.status(400).json({ error: true, message: 'You are on day off.' })
     } else {
       const timeIn = await findTimeIn(results[0].id)
-      const currentTime = createDateObject(getTime())
-      const shiftOut = createDateObject(getCurrentSchedule()[1])
-
+      
       // check if user is already logged out
       if (timeIn[0].time_out !== null) {
         return res
@@ -167,7 +170,7 @@ async function authLoginViaCard(req, res) {
   } catch (error) {
     res
       .status(error.httpCode || 400)
-      .json({ error: true, message: error.message })
+      .json({ error: true, message: error.stack })
   }
 }
 

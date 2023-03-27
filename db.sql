@@ -28,6 +28,8 @@ CREATE TABLE schedule(
 )
 
 
+
+
 CREATE TABLE hr_employee_logs(
     id SERIAL PRIMARY KEY,
     employeeid INT NOT NULL,
@@ -38,3 +40,13 @@ CREATE TABLE hr_employee_logs(
         FOREIGN KEY(employeeid)
             REFERENCES users(id)
 )
+
+
+
+SELECT hr_employee_logs.*, 
+CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) as totalhours, 
+CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) * users.rateperhour AS total_cost
+FROM hr_employee_logs
+JOIN users ON hr_employee_logs.employeeid = users.id
+WHERE time_out > time_in
+AND users.department != 'hr'

@@ -63,7 +63,10 @@ async function findLogs() {
         'hr_employee_logs.id as employee_logs_id',
         'hr_employee_logs.log_date',
         'hr_employee_logs.time_in',
-        'hr_employee_logs.time_out'
+        'hr_employee_logs.time_out',
+        client.raw(
+          'CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) as totalhours'
+        )
       )
       .leftJoin('hr_employee_logs', 'users.id', 'hr_employee_logs.employeeid')
       .orderBy('users.id')
@@ -79,6 +82,7 @@ async function findLogs() {
           fullname: user.fullname,
           department: user.department,
           role: user.role,
+          totalhours: user.totalhours ? user.totalhours : 0,
           logs: [],
         }
         usersWithLogs.push(currentUser)
