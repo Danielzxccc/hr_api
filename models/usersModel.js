@@ -82,7 +82,6 @@ async function findLogs() {
           fullname: user.fullname,
           department: user.department,
           role: user.role,
-          totalhours: user.totalhours ? user.totalhours : 0,
           logs: [],
         }
         usersWithLogs.push(currentUser)
@@ -90,6 +89,7 @@ async function findLogs() {
 
       if (user.employee_logs_id) {
         currentUser.logs.push({
+          totalhours: user.totalhours ? user.totalhours : 0,
           id: user.employee_logs_id,
           log_date: user.log_date,
           time_in: user.time_in,
