@@ -22,5 +22,6 @@ router.put('/archive/:id', usersController.archiveEmployee)
 router.put('/unarchive/:id', usersController.unarchiveEmployee)
 router.get('/get/:id', usersController.fetchOneUser)
 router.get('/logs', usersController.fetchUserLogs)
+router.get('/logs/:id', usersController.fetchSingleLog)
 
 module.exports = router

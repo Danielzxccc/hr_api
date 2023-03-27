@@ -250,6 +250,16 @@ async function fetchUserLogs(req, res) {
   }
 }
 
+async function fetchSingleLog(req, res) {
+  const id = req.params.id
+  try {
+    const users = await usersModel.findLogs(id)
+    res.status(200).json(users)
+  } catch (error) {
+    res.status(error.httpCode).json({ error: true, message: error.message })
+  }
+}
+
 async function uploadImage(req, res) {
   try {
     const file = req.file
@@ -284,6 +294,7 @@ module.exports = {
   fetchUsers,
   fetchOneUser,
   fetchUserLogs,
+  fetchSingleLog,
   uploadImage,
   fetchArchiveEmployees,
   unarchiveEmployee,

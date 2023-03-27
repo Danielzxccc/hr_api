@@ -52,14 +52,11 @@ async function findEmployee(rfid) {
   }
 }
 
-async function findLogs() {
+async function findLogs(id) {
   try {
-    const users = await client('users')
+    let query = client('users')
       .select(
-        'users.id',
-        'users.fullname',
-        'users.department',
-        'users.role',
+        'users.*',
         'hr_employee_logs.id as employee_logs_id',
         'hr_employee_logs.log_date',
         'hr_employee_logs.time_in',
@@ -69,7 +66,15 @@ async function findLogs() {
         )
       )
       .leftJoin('hr_employee_logs', 'users.id', 'hr_employee_logs.employeeid')
-      .orderBy('users.id')
+
+    const users = await query.modify(function (queryBuilder) {
+      if (id) {
+        queryBuilder.where('users.id', id)
+        queryBuilder.orderBy('users.id')
+      } else {
+        queryBuilder.orderBy('users.id')
+      }
+    })
 
     const usersWithLogs = []
 
@@ -80,6 +85,9 @@ async function findLogs() {
         currentUser = {
           id: user.id,
           fullname: user.fullname,
+          address: user.address,
+          contact: user.contact,
+          email: user.email,
           department: user.department,
           role: user.role,
           logs: [],
