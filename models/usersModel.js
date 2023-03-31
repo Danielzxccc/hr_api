@@ -52,7 +52,7 @@ async function findEmployee(rfid) {
   }
 }
 
-async function findLogs(id) {
+async function findLogs(id, startdate, enddate) {
   try {
     let query = client('users')
       .select(
@@ -61,8 +61,12 @@ async function findLogs(id) {
         'hr_employee_logs.log_date',
         'hr_employee_logs.time_in',
         'hr_employee_logs.time_out',
+        'hr_employee_logs.overtime  ',
         client.raw(
           'CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) as totalhours'
+        ),
+        client.raw(
+          'CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) * users.rateperhour AS total_cost'
         )
       )
       .leftJoin('hr_employee_logs', 'users.id', 'hr_employee_logs.employeeid')
@@ -71,6 +75,8 @@ async function findLogs(id) {
       if (id) {
         queryBuilder.where('users.id', id)
         queryBuilder.orderBy('users.id')
+      } else if (startdate && enddate) {
+        queryBuilder.whereBetween('hr_employee_logs', [startdate, enddate])
       } else {
         queryBuilder.orderBy('users.id')
       }
@@ -87,6 +93,7 @@ async function findLogs(id) {
           fullname: user.fullname,
           address: user.address,
           contact: user.contact,
+          rateperhour: user.rateperhour,
           email: user.email,
           department: user.department,
           role: user.role,
@@ -98,6 +105,8 @@ async function findLogs(id) {
       if (user.employee_logs_id) {
         currentUser.logs.push({
           totalhours: user.totalhours ? user.totalhours : 0,
+          total_cost: user.total_cost ? user.total_cost : 0,
+          overtime: user.overtime,
           id: user.employee_logs_id,
           log_date: user.log_date,
           time_in: user.time_in,
@@ -105,6 +114,7 @@ async function findLogs(id) {
         })
       }
     }
+
     return usersWithLogs
   } catch (error) {
     throw new ErrorHandler(error.message || "Can't Fetch user!", 400)

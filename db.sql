@@ -67,5 +67,5 @@ CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) as totalhours,
 CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) * users.rateperhour AS total_cost
 FROM hr_employee_logs
 JOIN users ON hr_employee_logs.employeeid = users.id
-WHERE time_out > time_in
+WHERE time_out > time_in AND id = 1
 AND users.department != 'hr'

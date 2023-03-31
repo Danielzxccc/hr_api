@@ -114,10 +114,6 @@ async function authLoginViaCard(req, res) {
     const shift_timein = getCurrentSchedule()[0]
     const shift_timeout = getCurrentSchedule()[1]
 
-    // console.log(
-    //   createDateObject(shift_timein) >= createDateObject(getTime()),
-    //   createDateObject(shift_timeout) <= createDateObject(getTime())
-    // )
     if (!checkLogs.length) {
       if (
         createDateObject(getTime()) <= createDateObject(shift_timein) ||
@@ -160,15 +156,26 @@ async function authLoginViaCard(req, res) {
 
       // add overtime functions here soon
 
+      const checkOvertime =
+        createDateObject(time.getTime()) - createDateObject(shiftOut) / 3600000
+
       // if user shift time out is greater than or equal to current time send 200 http status
       if (shiftOut <= currentTime) {
-        await addTimeOut(results[0].id)
+        if (checkOvertime > 0) {
+          await addTimeOut(results[0].id, checkOvertime)
+        } else {
+          await addTimeOut(results[0].id)
+        }
         return res.status(200).json({ message: 'Successfully Logged Out' })
       }
 
       // for confirmation of logout
       if (isConfirmed) {
-        await addTimeOut(results[0].id)
+        if (checkOvertime > 0) {
+          await addTimeOut(results[0].id, checkOvertime)
+        } else {
+          await addTimeOut(results[0].id)
+        }
         return res.status(200).json({ message: 'Successfully Logged Out' })
       }
 

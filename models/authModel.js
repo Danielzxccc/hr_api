@@ -39,11 +39,11 @@ async function findTimeIn(id) {
   }
 }
 
-async function addTimeOut(id) {
+async function addTimeOut(id, overtime = 0) {
   try {
     await client.raw(
-      'UPDATE hr_employee_logs SET time_out = CURRENT_TIMESTAMP WHERE log_date = CURRENT_DATE AND employeeid = ?',
-      [id]
+      'UPDATE hr_employee_logs SET time_out = CURRENT_TIMESTAMP, overtime = ? WHERE log_date = CURRENT_DATE AND employeeid = ?',
+      [overtime, id]
     )
   } catch (error) {
     throw new ErrorHandler(error.message || "Can't add timed out", 400)

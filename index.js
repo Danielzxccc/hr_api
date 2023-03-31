@@ -7,11 +7,17 @@ const cookieParser = require('cookie-parser')
 const session = require('express-session')
 const corsOptions = require('./config/corsOptions')
 const { requireSession } = require('./middleware/requireAuth')
+const { backupLogs } = require('./cron/backupJobs')
+const cron = require('node-cron')
 
 //middlewares
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(cors(corsOptions))
+app.use(
+  cors({
+    credentials: true,
+  })
+)
 app.use(cookieParser())
 
 app.use(
@@ -29,5 +35,9 @@ app.use(
 // app.use("/users", requireSession, require("./routes/usersRoutes"));
 app.use('/users', require('./routes/usersRoutes'))
 app.use('/auth', require('./routes/authRoutes'))
+app.use('/payroll', require('./routes/payrollRoutes'))
+app.use('/backup', require('./routes/backupRoutes'))
+
+// cron.schedule('0 0 28-31 * *', backupLogs)
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))
