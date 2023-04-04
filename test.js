@@ -26,10 +26,24 @@
 //   } else {
 //     console.log('File saved successfully.')
 //   }
-// })c
+// })
 
-const jsonString =
-  '["{"day": "Sunday", "shift_timein": "13:00", "shift_timeout": "17:00"}","{"day": "Tuesday", "shift_timein": "13:00", "shift_timeout": "17:00"}","{"day": "Wednesday", "shift_timein": "13:00", "shift_timeout": "17:00"}","{"day": "Saturday", "shift_timein": "13:00", "shift_timeout": "17:00"}","{"day": "Monday", "shift_timein": "13:00", "shift_timeout": "17:00"}"]'
+// const jsonString =
+//   '["{"day": "Sunday", "shift_timein": "13:00", "shift_timeout": "17:00"}","{"day": "Tuesday", "shift_timein": "13:00", "shift_timeout": "17:00"}","{"day": "Wednesday", "shift_timein": "13:00", "shift_timeout": "17:00"}","{"day": "Saturday", "shift_timein": "13:00", "shift_timeout": "17:00"}","{"day": "Monday", "shift_timein": "13:00", "shift_timeout": "17:00"}"'
 
-const jsonArray = JSON.parse(jsonString)
-console.log(jsonArray)
+// const jsonArray = JSON.parse(jsonString)
+// console.log(jsonArray)
+
+const data = {
+  schedule: [
+    {
+      day: 'Monday',
+      shift_timein: '16:00:00',
+      shift_timeout: '21:00:00',
+    },
+  ],
+}
+
+const test = JSON.stringify(data)
+
+console.log(JSON.parse(test))

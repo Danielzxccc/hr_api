@@ -100,6 +100,22 @@ async function createUser(req, res) {
   }
 }
 
+async function updateSchedule(req, res) {
+  const id = req.params.id
+  try {
+    const jsonData = JSON.parse(req.body.json)
+    const update = await usersModel.update(id, jsonData)
+    res.status(201).json({
+      message: 'Schedule has been updated',
+      user: update,
+    })
+  } catch (error) {
+    res
+      .status(error.httpCode || 500)
+      .json({ error: true, message: error.message })
+  }
+}
+
 async function updateUser(req, res) {
   const id = req.params.id
   try {
@@ -290,6 +306,7 @@ async function fetchUnpaidUsers(req, res) {
 module.exports = {
   createUser,
   updateUser,
+  updateSchedule,
   fetchUnpaidUsers,
   fetchUsers,
   fetchOneUser,

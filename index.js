@@ -13,11 +13,7 @@ const cron = require('node-cron')
 //middlewares
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(
-  cors({
-    credentials: true,
-  })
-)
+app.use(cors())
 app.use(cookieParser())
 
 app.use(
@@ -38,6 +34,6 @@ app.use('/users', require('./routes/usersRoutes'))
 // app.use('/payroll', require('./routes/payrollRoutes'))
 // app.use('/backup', require('./routes/backupRoutes'))
 
-// cron.schedule('0 0 28-31 * *', backupLogs)
+cron.schedule('0 0 28-31 * *', backupLogs)
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))
