@@ -13,7 +13,7 @@ const cron = require('node-cron')
 //middlewares
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(cookieParser())
 
 app.use(
@@ -28,11 +28,11 @@ app.use(
   })
 )
 
-// app.use("/users", requireSession, require("./routes/usersRoutes"));
+// app.use('/users', requireSession, require('./routes/usersRoutes'))
 app.use('/users', require('./routes/usersRoutes'))
-// app.use('/auth', require('./routes/authRoutes'))
-// app.use('/payroll', require('./routes/payrollRoutes'))
-// app.use('/backup', require('./routes/backupRoutes'))
+app.use('/auth', require('./routes/authRoutes'))
+app.use('/payroll', require('./routes/payrollRoutes'))
+app.use('/backup', require('./routes/backupRoutes'))
 
 cron.schedule('0 0 28-31 * *', backupLogs)
 

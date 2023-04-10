@@ -52,7 +52,7 @@ async function findEmployee(rfid) {
   }
 }
 
-async function findLogs(id, startdate, enddate) {
+async function findLogs(id, startdate = '', enddate = '') {
   try {
     let query = client('users')
       .select(
@@ -75,8 +75,10 @@ async function findLogs(id, startdate, enddate) {
       if (id) {
         queryBuilder.where('users.id', id)
         queryBuilder.orderBy('users.id')
-      } else if (startdate && enddate) {
-        queryBuilder.whereBetween('hr_employee_logs', [startdate, enddate])
+        queryBuilder.whereBetween('hr_employee_logs.log_date', [
+          startdate,
+          enddate,
+        ])
       } else {
         queryBuilder.orderBy('users.id')
       }
@@ -169,6 +171,7 @@ async function getEmployeeList() {
   try {
     const employess = await client('users')
       .select('users.*', 'hr_payroll.startdate', 'hr_payroll.enddate')
+      .where({ active: 1 })
       .leftJoin('hr_payroll', 'users.id', 'hr_payroll.employeeid')
       .orderBy('users.id')
 

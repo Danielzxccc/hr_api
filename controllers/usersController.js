@@ -268,8 +268,11 @@ async function fetchUserLogs(req, res) {
 
 async function fetchSingleLog(req, res) {
   const id = req.params.id
+  const startdate = req.query.startdate || ''
+  const enddate = req.query.enddate || ''
+
   try {
-    const users = await usersModel.findLogs(id)
+    const users = await usersModel.findLogs(id, startdate, enddate)
     res.status(200).json(users)
   } catch (error) {
     res.status(error.httpCode).json({ error: true, message: error.message })
