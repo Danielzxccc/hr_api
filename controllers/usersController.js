@@ -4,9 +4,9 @@ const fs = require('fs')
 const cloudinary = require('cloudinary').v2
 
 cloudinary.config({
-  cloud_name: 'dgf4rk3en',
-  api_key: '184696318166934',
-  api_secret: 'UhXiDPl058kvgZy7K-_dGaB4AQ8',
+  cloud_name: process.env.cloud_name,
+  api_key: process.env.api_key,
+  api_secret: process.env.api_secret,
 })
 
 async function createUser(req, res) {

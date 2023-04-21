@@ -60,6 +60,17 @@ CREATE TABLE hr_payroll(
             REFERENCES users(id)
 )
 
+CREATE TABLE hr_audit_logs(
+    id SERIAL PRIMARY KEY,
+    employeeid INT NOT NULL,
+    activity VARCHAR NOT NULL,
+    actiondate DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_employee_payroll_id
+        FOREIGN KEY(employeeid)
+            REFERENCES users(id)
+)
+
 
 
 SELECT hr_employee_logs.*, 
