@@ -61,7 +61,8 @@ async function findLogs(id, startdate = '', enddate = '') {
         'hr_employee_logs.log_date',
         'hr_employee_logs.time_in',
         'hr_employee_logs.time_out',
-        'hr_employee_logs.overtime  ',
+        'hr_employee_logs.overtime',
+        'hr_employee_logs.overtimestatus',
         client.raw(
           'CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) as totalhours'
         ),
@@ -109,6 +110,7 @@ async function findLogs(id, startdate = '', enddate = '') {
           totalhours: user.totalhours ? user.totalhours : 0,
           total_cost: user.total_cost ? user.total_cost : 0,
           overtime: user.overtime,
+          overtimestatus: user.overtimestatus,
           id: user.employee_logs_id,
           log_date: user.log_date,
           time_in: user.time_in,

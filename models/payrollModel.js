@@ -21,7 +21,7 @@ async function findAll() {
 
 async function findOne(id) {
   try {
-    const data = await client('hr_payroll').where({ id: id })
+    const data = await client('hr_payroll').where({ employeeid: id })
     return data
   } catch (error) {
     throw new ErrorHandler(error.message || "Can't fetch payroll", 409)

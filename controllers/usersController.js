@@ -62,21 +62,9 @@ async function createUser(req, res) {
 
         const hashedPwd = await bcrypt.hash(password, 10)
         const userObject = {
-          role,
-          username,
+          ...jsonData,
           password: hashedPwd,
-          department,
-          scheduletype,
-          rateperhour,
-          status,
-          fullname,
-          birthdate,
-          address,
-          email,
-          contact,
           imgurl: upload.url,
-          rfid,
-          schedule,
         }
 
         const insert = await usersModel.create(userObject)
@@ -161,21 +149,7 @@ async function updateUser(req, res) {
         url = upload.url
       }
 
-      const userObject = {
-        role,
-        username,
-        department,
-        rateperhour,
-        status,
-        fullname,
-        birthdate,
-        address,
-        email,
-        contact,
-        imgurl: url ? url : imgurl,
-        rfid,
-        schedule,
-      }
+      const userObject = { ...jsonData, imgurl: url ? url : imgurl }
 
       const update = await usersModel.update(id, userObject)
 
