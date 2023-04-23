@@ -157,8 +157,9 @@ async function authLoginViaCard(req, res) {
       // add overtime functions here soon
 
       const checkOvertime =
-        createDateObject(getTime()) - createDateObject(shift_timeout) / 3600000
-
+        (createDateObject(getTime()) - createDateObject(shift_timeout)) /
+        3600000
+      console.log(checkOvertime)
       // if user shift time out is greater than or equal to current time send 200 http status
       if (shiftOut <= currentTime) {
         if (checkOvertime > 0) {
@@ -171,6 +172,7 @@ async function authLoginViaCard(req, res) {
 
       // for confirmation of logout
       if (isConfirmed) {
+        console.log(checkOvertime)
         if (checkOvertime > 0) {
           await addTimeOut(results[0].id, checkOvertime)
         } else {

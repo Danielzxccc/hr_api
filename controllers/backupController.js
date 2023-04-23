@@ -89,9 +89,23 @@ async function listFiles(req, res) {
   }
 }
 
+async function exportDateFromTable(req, res) {
+  const { table } = req.body
+  try {
+    const data = await backupModel.getAllRecords(table)
+    res.json(data)
+  } catch (error) {
+    res.status(error.httpCode || 500).json({
+      error: true,
+      message: "Can't list log files",
+    })
+  }
+}
+
 module.exports = {
   getUsersRecords,
   getUserLogsRecords,
   getUserPayrolls,
   listFiles,
+  exportDateFromTable,
 }
