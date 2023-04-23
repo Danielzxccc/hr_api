@@ -67,4 +67,31 @@ async function getUserPayrolls(req, res) {
     })
   }
 }
-module.exports = { getUsersRecords, getUserLogsRecords, getUserPayrolls }
+
+async function listFiles(req, res) {
+  const table = req.query.table
+  try {
+    if (!table) return res.status(200).json({ files: [] })
+    const directoryPath = path.join(__dirname, '..', `/backup/${table}`)
+    fs.readdir(directoryPath, (err, files) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ error: true, message: 'Failed to read directory' })
+      }
+      res.status(200).json({ files })
+    })
+  } catch (error) {
+    res.status(error.httpCode || 500).json({
+      error: true,
+      message: "Can't list user log files",
+    })
+  }
+}
+
+module.exports = {
+  getUsersRecords,
+  getUserLogsRecords,
+  getUserPayrolls,
+  listFiles,
+}

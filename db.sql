@@ -65,11 +65,26 @@ CREATE TABLE hr_audit_logs(
     employeeid INT NOT NULL,
     activity VARCHAR NOT NULL,
     actiondate DATE NOT NULL DEFAULT CURRENT_DATE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIME NOT NULL DEFAULT CURRENT_TIME,
     CONSTRAINT fk_employee_payroll_id
         FOREIGN KEY(employeeid)
             REFERENCES users(id)
 )
+
+CREATE TABLE hr_employee_leave(
+    id SERIAL PRIMARY KEY,
+    employeeid INT NOT NULL,
+    startdate DATE NOT NULL,
+    enddate DATE NOT NULL,
+    typeofleave VARCHAR NOT NULL,
+    isPaid INT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_employee_leave_id
+        FOREIGN KEY(employeeid)
+            REFERENCES users(id)
+)
+
+INSERT INTO hr_employee_leave (employeeid, startdate, enddate, typeofleave)
+VALUES (4, '2023-04-23', '2023-04-27', 'Vacation Leave')
 
 
 

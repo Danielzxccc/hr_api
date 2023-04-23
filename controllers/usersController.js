@@ -1,12 +1,14 @@
 const usersModel = require('../models/usersModel')
 const bcrypt = require('bcrypt')
 const fs = require('fs')
+const { createLog } = require('../models/auditLogsModel')
+const { getCurrentFormat } = require('../utils/getCurrentTime')
 const cloudinary = require('cloudinary').v2
 
 cloudinary.config({
-  cloud_name: process.env.cloud_name,
-  api_key: process.env.api_key,
-  api_secret: process.env.api_secret,
+  cloud_name: 'dgf4rk3en',
+  api_key: '184696318166934',
+  api_secret: 'UhXiDPl058kvgZy7K-_dGaB4AQ8',
 })
 
 async function createUser(req, res) {
@@ -68,6 +70,12 @@ async function createUser(req, res) {
         }
 
         const insert = await usersModel.create(userObject)
+
+        await createLog({
+          employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
+          activity: `${req.session.user[0].fullname} created an employee`,
+          created_at: getCurrentFormat(),
+        })
 
         res.status(201).json({
           message: 'Employee was created',
@@ -153,6 +161,14 @@ async function updateUser(req, res) {
 
       const update = await usersModel.update(id, userObject)
 
+      if (update) {
+        await createLog({
+          employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
+          activity: `${req.session.user[0].fullname} updated an employee`,
+          created_at: getCurrentFormat(),
+        })
+      }
+
       res.status(201).json({
         message: 'Employee has been updated',
         user: update,
@@ -168,7 +184,7 @@ async function updateUser(req, res) {
   } catch (error) {
     res
       .status(error.httpCode || 500)
-      .json({ error: true, message: 'Username or RFID already exists.' })
+      .json({ error: true, message: error.message })
   }
 }
 
@@ -194,11 +210,18 @@ async function archiveEmployee(req, res) {
   const id = req.params.id
   try {
     const archivedUser = await usersModel.archive(id)
+    await createLog({
+      employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
+      activity: `${req.session.user[0].fullname} archived an employee`,
+      created_at: getCurrentFormat(),
+    })
     res.status(201).json({
       message: `Employee ${archivedUser[0].fullname} has been archived`,
     })
   } catch (error) {
-    res.status(error.httpCode).json({ error: true, message: error.message })
+    res
+      .status(error.httpCode || 500)
+      .json({ error: true, message: error.message })
   }
 }
 
@@ -206,6 +229,11 @@ async function unarchiveEmployee(req, res) {
   const id = req.params.id
   try {
     const unarchiveUser = await usersModel.unarchive(id)
+    await createLog({
+      employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
+      activity: `${req.session.user[0].fullname} unarchived an employee`,
+      created_at: getCurrentFormat(),
+    })
     res.status(200).json({
       message: `Successfully unarchived ${unarchiveUser[0].fullname}.`,
     })

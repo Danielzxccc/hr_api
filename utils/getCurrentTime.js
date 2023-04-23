@@ -42,4 +42,30 @@ function getCurrentDate() {
   return date
 }
 
-module.exports = { getTime, createDateObject, getCurrentDay, getCurrentDate }
+function getCurrentFormat() {
+  const now = new Date()
+
+  let hours = now.getHours()
+  let minutes = now.getMinutes()
+
+  let amOrPm = hours >= 12 ? 'pm' : 'am'
+  hours = hours % 12
+  hours = hours ? hours : 12
+
+  if (minutes < 10) {
+    minutes = '0' + minutes
+  }
+
+  // combine the hours, minutes, and am/pm into a string
+  const timeString = hours + ':' + minutes + ' ' + amOrPm
+
+  return timeString
+}
+
+module.exports = {
+  getTime,
+  createDateObject,
+  getCurrentDay,
+  getCurrentDate,
+  getCurrentFormat,
+}

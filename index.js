@@ -33,6 +33,7 @@ app.use('/users', require('./routes/usersRoutes'))
 app.use('/auth', require('./routes/authRoutes'))
 app.use('/payroll', require('./routes/payrollRoutes'))
 app.use('/backup', require('./routes/backupRoutes'))
+app.use('/logs', require('./routes/auditLogsRoutes'))
 
 // cron.schedule('0 0 28-31 * *', backupLogs)
 

@@ -1,8 +1,15 @@
+const { createLog } = require('../models/auditLogsModel')
 const payrollModel = require('../models/payrollModel')
+const { getCurrentFormat } = require('../utils/getCurrentTime')
 
 async function createPayroll(req, res) {
   try {
     const insertPayroll = await payrollModel.create(req.body)
+    await createLog({
+      employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
+      activity: `${req.session.user[0].fullname} created a payroll`,
+      created_at: getCurrentFormat(),
+    })
     res
       .status(201)
       .json({ message: 'Created Successfully', data: insertPayroll })
