@@ -31,6 +31,7 @@ async function getAllPayroll(req, res) {
   }
 }
 
+// get payroll by employeeid
 async function getOnePayroll(req, res) {
   try {
     const id = req.params.id
@@ -42,5 +43,17 @@ async function getOnePayroll(req, res) {
       .json({ error: true, message: error.message })
   }
 }
+// get payroll by id
+async function getPayrollById(req, res) {
+  try {
+    const id = req.params.id
+    const query = await payrollModel.findPayroll(id)
+    res.status(200).json(query)
+  } catch (error) {
+    res
+      .status(error.httpCode || 400)
+      .json({ error: true, message: error.message })
+  }
+}
 
-module.exports = { createPayroll, getAllPayroll, getOnePayroll }
+module.exports = { createPayroll, getAllPayroll, getOnePayroll, getPayrollById }
