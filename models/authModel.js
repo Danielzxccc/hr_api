@@ -15,7 +15,19 @@ async function createLog(id) {
     throw new ErrorHandler(error.message || "Can't create log", 409)
   }
 }
-
+// for hr employees
+async function checkAttendance(id) {
+  try {
+    const data = await client.raw(
+      'SELECT * FROM hr_employee_logs WHERE log_date = CURRENT_DATE AND employeeid = ?',
+      [id]
+    )
+    return data.rows
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't fetch log", 401)
+  }
+}
+// for employees outside hr
 async function checkDay(id) {
   try {
     const data = await client.raw(
@@ -50,4 +62,10 @@ async function addTimeOut(id, overtime = 0) {
   }
 }
 
-module.exports = { createLog, checkDay, findTimeIn, addTimeOut }
+module.exports = {
+  createLog,
+  checkDay,
+  findTimeIn,
+  addTimeOut,
+  checkAttendance,
+}

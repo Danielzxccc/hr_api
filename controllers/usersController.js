@@ -1,6 +1,14 @@
 const usersModel = require('../models/usersModel')
 const bcrypt = require('bcrypt')
 const fs = require('fs')
+const {
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  endOfYear,
+  startOfYear,
+} = require('date-fns')
 const { createLog } = require('../models/auditLogsModel')
 const { getCurrentFormat } = require('../utils/getCurrentTime')
 const cloudinary = require('cloudinary').v2
@@ -73,7 +81,7 @@ async function createUser(req, res) {
 
         await createLog({
           employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-          activity: `${req.session.user[0].fullname} created an employee`,
+          activity: 'created an employee',
           created_at: getCurrentFormat(),
         })
 
@@ -164,7 +172,7 @@ async function updateUser(req, res) {
       if (update) {
         await createLog({
           employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-          activity: `${req.session.user[0].fullname} updated an employee`,
+          activity: 'updated an employee',
           created_at: getCurrentFormat(),
         })
       }
@@ -212,7 +220,7 @@ async function archiveEmployee(req, res) {
     const archivedUser = await usersModel.archive(id)
     await createLog({
       employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-      activity: `${req.session.user[0].fullname} archived an employee`,
+      activity: 'archived an employee',
       created_at: getCurrentFormat(),
     })
     res.status(201).json({
@@ -231,7 +239,7 @@ async function unarchiveEmployee(req, res) {
     const unarchiveUser = await usersModel.unarchive(id)
     await createLog({
       employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-      activity: `${req.session.user[0].fullname} unarchived an employee`,
+      activity: `unarchived an employee`,
       created_at: getCurrentFormat(),
     })
     res.status(200).json({
@@ -261,7 +269,31 @@ async function fetchOneUser(req, res) {
 
 async function fetchUserLogs(req, res) {
   try {
-    const users = await usersModel.findLogs()
+    const startWeek = startOfWeek(new Date())
+    const endWeek = endOfWeek(new Date())
+    const startMonth = startOfMonth(new Date())
+    const endMonth = endOfMonth(new Date())
+    const startYear = startOfYear(new Date())
+    const endYear = endOfYear(new Date())
+
+    function determineStartDate(range = '') {
+      if (range === 'week') return startWeek
+      if (range === 'month') return startMonth
+      if (range === 'year') return startYear
+    }
+
+    function determineEndDate(range = '') {
+      if (range === 'week') return endWeek
+      if (range === 'month') return endMonth
+      if (range === 'year') return endYear
+    }
+
+    const { range, id } = req.query
+    const users = await usersModel.findLogs(
+      id,
+      determineStartDate(range),
+      determineEndDate(range)
+    )
     res.status(200).json(users)
   } catch (error) {
     res.status(error.httpCode).json({ error: true, message: error.message })
@@ -308,6 +340,16 @@ async function fetchUnpaidUsers(req, res) {
   }
 }
 
+async function suspendEmployee(req, res) {
+  try {
+    const { id } = req.params
+    const data = await usersModel.suspend(id)
+    res.status(200).json(data)
+  } catch (error) {
+    res.status(400).json({ error: true, message: error.message })
+  }
+}
+
 module.exports = {
   createUser,
   updateUser,
@@ -321,4 +363,5 @@ module.exports = {
   fetchArchiveEmployees,
   unarchiveEmployee,
   archiveEmployee,
+  suspendEmployee,
 }

@@ -8,6 +8,7 @@ const session = require('express-session')
 const corsOptions = require('./config/corsOptions')
 const { requireSession } = require('./middleware/requireAuth')
 const { backupLogs } = require('./cron/backupJobs')
+
 const cron = require('node-cron')
 
 //middlewares
@@ -36,6 +37,10 @@ app.use('/backup', require('./routes/backupRoutes'))
 app.use('/logs', require('./routes/auditLogsRoutes'))
 app.use('/report', require('./routes/reportsRoutes'))
 
-// cron.schedule('0 0 28-31 * *', backupLogs)
+// cron.schedule('* * * * *', require('./cron/payrollJobs').adjustTimeout)
+
+// setInterval(() => {
+//   require('./cron/payrollJobs').adjustTimeout()
+// }, 5000)
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))

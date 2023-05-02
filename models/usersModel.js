@@ -64,7 +64,7 @@ async function findLogs(id, startdate = '', enddate = '') {
         'hr_employee_logs.overtime',
         'hr_employee_logs.overtimestatus',
         client.raw(
-          'CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) as totalhours'
+          'ROUND(EXTRACT(EPOCH FROM (time_out - time_in))/3600) as totalhours'
         ),
         client.raw(
           'CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) * users.rateperhour AS total_cost'
@@ -183,6 +183,18 @@ async function getEmployeeList() {
   }
 }
 
+async function suspend(id) {
+  try {
+    const data = await client('users')
+      .update({ active: 2 })
+      .where({ id: id })
+      .returning('*')
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't suspend this employee!", 400)
+  }
+}
+
 module.exports = {
   create,
   findUser,
@@ -193,4 +205,5 @@ module.exports = {
   archive,
   createSchedule,
   unarchive,
+  suspend,
 }

@@ -50,7 +50,7 @@ async function findPayroll(id) {
         'hr_employee_logs.time_in',
         'hr_employee_logs.time_out',
         client.raw(
-          'CEIL(EXTRACT(EPOCH FROM (time_out - time_in))/3600) as totalhours'
+          'ROUND(EXTRACT(EPOCH FROM (time_out - time_in))/3600) as totalhours'
         )
       )
       .join('users', 'users.id', 'hr_payroll.employeeid')
@@ -91,4 +91,30 @@ async function findPayroll(id) {
   }
 }
 
-module.exports = { create, findAll, findOne, findPayroll }
+async function getEmployeeWithNoTimeout() {
+  try {
+    const data = await client('hr_employee_logs').whereRaw('time_out IS NULL')
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't fetch payroll", 409)
+  }
+}
+
+async function adjustTimeout(id, timestamp) {
+  try {
+    await client('hr_employee_logs')
+      .where({ id: id })
+      .update({ time_out: timestamp })
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't fetch payroll", 409)
+  }
+}
+
+module.exports = {
+  create,
+  findAll,
+  findOne,
+  findPayroll,
+  getEmployeeWithNoTimeout,
+  adjustTimeout,
+}

@@ -7,7 +7,7 @@ async function createPayroll(req, res) {
     const insertPayroll = await payrollModel.create(req.body)
     await createLog({
       employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-      activity: `${req.session.user[0].fullname} created a payroll`,
+      activity: `created a payroll`,
       created_at: getCurrentFormat(),
     })
     res

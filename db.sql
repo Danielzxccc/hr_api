@@ -13,19 +13,12 @@ CREATE TABLE users(
     address VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     contact VARCHAR(255) NOT NULL,
-    CONSTRAINT UC_username UNIQUE (username)
+    rfid INT NOT NULL,
+
+    CONSTRAINT UC_username UNIQUE (username),
+    CONSTRAINT UC_rfid UNIQUE (rfid)
 )
 
-CREATE TABLE schedule(
-    id SERIAL PRIMARY KEY,
-    employeeid INT NOT NULL,
-    shift_timein TIME,
-    shift_timeout TIME,
-    day VARCHAR(10),
-    CONSTRAINT fk_employee_schedule
-        FOREIGN KEY(employeeid)
-            REFERENCES users(id)
-)
 
 
 CREATE TABLE hr_employee_logs(
@@ -34,6 +27,8 @@ CREATE TABLE hr_employee_logs(
     log_date date DEFAULT CURRENT_DATE,
     time_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     time_out TIMESTAMP,
+    overtime INTEGER NOT NULL DEFAULT 0,
+    overtimestatus INTEGER NOT NULL DEFAULT 0,
     CONSTRAINT fk_employee_logs_id
         FOREIGN KEY(employeeid)
             REFERENCES users(id)
@@ -81,6 +76,27 @@ CREATE TABLE hr_employee_leave(
     CONSTRAINT fk_employee_leave_id
         FOREIGN KEY(employeeid)
             REFERENCES users(id)
+)
+
+CREATE TABLE hr_suspension(
+    id SERIAL PRIMARY KEY,
+    employeeid INT NOT NULL,
+    validuntil DATE NOT NULL,
+    reason VARCHAR NOT NULL,
+    CONSTRAINT fk_employee_suspension_id
+       FOREIGN KEY(employeeid)
+       REFERENCES users(id)
+)
+
+CREATE TABLE hr_violations(
+    id SERIAL PRIMARY KEY,
+    employeeid INT NOT NULL,
+    reason VARCHAR NOT NULL,
+    type VARCHAR NOT NULL,
+    validuntil DATE,
+    CONSTRAINT fk_employee_violation_id
+       FOREIGN KEY(employeeid)
+       REFERENCES users(id)
 )
 
 INSERT INTO hr_employee_leave (employeeid, startdate, enddate, typeofleave)
