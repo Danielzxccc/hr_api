@@ -11,6 +11,7 @@ const {
 } = require('date-fns')
 const { createLog } = require('../models/auditLogsModel')
 const { getCurrentFormat } = require('../utils/getCurrentTime')
+const generatePassword = require('../utils/passwordGenerator')
 const cloudinary = require('cloudinary').v2
 
 cloudinary.config({
@@ -198,7 +199,7 @@ async function updateUser(req, res) {
 
 async function fetchUsers(req, res) {
   try {
-    const users = await usersModel.findUser({ active: 1 })
+    const users = await usersModel.findUser({ active: 1 }, true)
     res.status(200).json(users)
   } catch (error) {
     res.status(error.httpCode).json({ error: true, message: error.message })
@@ -343,10 +344,30 @@ async function fetchUnpaidUsers(req, res) {
 async function suspendEmployee(req, res) {
   try {
     const { id } = req.params
-    const data = await usersModel.suspend(id)
-    res.status(200).json(data)
+    const { validuntil, message } = req.body
+    console.log(validuntil)
+    const data = await usersModel.suspend(id, validuntil, message)
+    res.status(200).json({ message: 'Successfully suspended', data })
   } catch (error) {
     res.status(400).json({ error: true, message: error.message })
+  }
+}
+
+async function resetPassword(req, res) {
+  try {
+    const { id } = req.params
+    const randomPassword = generatePassword()
+    const hashedPwd = await bcrypt.hash(randomPassword, 10)
+
+    const reset = await usersModel.reset(id, hashedPwd)
+    res.status(200).json({
+      password: randomPassword,
+      data: reset,
+    })
+  } catch (error) {
+    res
+      .status(error.httpCode || 400)
+      .json({ error: true, message: error.message })
   }
 }
 
@@ -364,4 +385,5 @@ module.exports = {
   unarchiveEmployee,
   archiveEmployee,
   suspendEmployee,
+  resetPassword,
 }

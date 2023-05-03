@@ -71,20 +71,20 @@ async function authAdminCard(req, res) {
       active: 1,
     })
 
-    const checklogs = await checkAttendance(results[0].id)
+    // const checklogs = await checkAttendance(results[0].id)
 
-    if (!checklogs.length) {
-      return res.status(400).json({
-        error: true,
-        message:
-          'Warning: It seems that you did not time in before logging in.',
-      })
-    }
+    // if (!checklogs.length) {
+    //   return res.status(400).json({
+    //     error: true,
+    //     message:
+    //       'Warning: It seems that you did not time in before logging in.',
+    //   })
+    // }
 
-    if (checklogs[0].time_out)
-      return res
-        .status(400)
-        .json({ error: true, message: 'You already timed out' })
+    // if (checklogs[0].time_out)
+    //   return res
+    //     .status(400)
+    //     .json({ error: true, message: 'You already timed out' })
 
     if (!results.length) {
       res.status(400).json({
@@ -109,10 +109,13 @@ async function authLoginViaCard(req, res) {
   const { rfid, isConfirmed } = req.body
   try {
     // check user credentials
-    const results = await findUser({
-      rfid: rfid,
-      active: 1,
-    })
+    const results = await findUser(
+      {
+        rfid: rfid,
+        active: 1,
+      },
+      true
+    )
 
     //throw error if credentials are invalid
     if (!results.length) {
@@ -120,6 +123,14 @@ async function authLoginViaCard(req, res) {
         message: 'Unauthorized',
       })
     }
+
+    //throw error if user is suspended
+    if (results[0].active === 2)
+      return res.status(400).json({
+        error: true,
+        message: results[0].message,
+        suspended: true,
+      })
 
     //throw error if user doesnt have schedule
     if (!results[0].schedule)

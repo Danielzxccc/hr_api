@@ -6,11 +6,11 @@ async function create(user) {
     const data = await client.insert(user).into('users').returning('*')
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't create user", 409)
+    throw new ErrorHandler(error.message || "Can't create user", 500)
   }
 }
 
-async function findUser(filter) {
+async function findUser(filter, suspensions = false) {
   // console.log(filter)
   try {
     let query = client('users')
@@ -28,12 +28,15 @@ async function findUser(filter) {
             queryBuilder.where(i, filter[i])
           }
         }
-        queryBuilder.orderBy('id')
       }
+      if (suspensions) {
+        queryBuilder.orWhere({ active: 2 })
+      }
+      queryBuilder.orderBy('id')
     })
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't Fetch user!", 400)
+    throw new ErrorHandler(error.message || "Can't Fetch user!", 500)
   }
 }
 
@@ -48,7 +51,7 @@ async function findEmployee(rfid) {
       })
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't Fetch user!", 400)
+    throw new ErrorHandler(error.message || "Can't Fetch user!", 500)
   }
 }
 
@@ -121,7 +124,7 @@ async function findLogs(id, startdate = '', enddate = '') {
 
     return usersWithLogs
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't Fetch user!", 400)
+    throw new ErrorHandler(error.message || "Can't Fetch user!", 500)
   }
 }
 
@@ -130,7 +133,7 @@ async function update(id, user) {
     const data = client('users').where({ id: id }).update(user).returning('*')
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't Update user!", 400)
+    throw new ErrorHandler(error.message || "Can't Update user!", 500)
   }
 }
 
@@ -142,7 +145,7 @@ async function archive(id) {
       .returning('*')
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't archive user!", 400)
+    throw new ErrorHandler(error.message || "Can't archive user!", 500)
   }
 }
 
@@ -154,7 +157,7 @@ async function unarchive(id) {
       .returning('*')
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't unarchive user!", 400)
+    throw new ErrorHandler(error.message || "Can't unarchive user!", 500)
   }
 }
 
@@ -165,7 +168,7 @@ async function createSchedule(schedule, id) {
       id,
     ])
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't create schedule!", 400)
+    throw new ErrorHandler(error.message || "Can't create schedule!", 500)
   }
 }
 
@@ -179,19 +182,31 @@ async function getEmployeeList() {
 
     return employess
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't create schedule!", 400)
+    throw new ErrorHandler(error.message || "Can't create schedule!", 500)
   }
 }
 
-async function suspend(id) {
+async function suspend(id, validuntil, message) {
   try {
     const data = await client('users')
-      .update({ active: 2 })
+      .update({ active: 2, validuntil, message })
       .where({ id: id })
       .returning('*')
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't suspend this employee!", 400)
+    throw new ErrorHandler(error.message || "Can't suspend this employee!", 500)
+  }
+}
+
+async function reset(id, password) {
+  try {
+    const data = await client('users')
+      .update({ password: password, status: 'temporary' })
+      .where({ id: id })
+      .returning('*')
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't suspend this employee!", 500)
   }
 }
 
@@ -206,4 +221,5 @@ module.exports = {
   createSchedule,
   unarchive,
   suspend,
+  reset,
 }
