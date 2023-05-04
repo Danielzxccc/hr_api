@@ -16,7 +16,7 @@ async function barchartData(id, year) {
 
     return countValue(data, 'bar')
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't fetch chart data", 409)
+    throw new ErrorHandler(error.message || "Can't fetch chart data", 500)
   }
 }
 
@@ -34,7 +34,7 @@ async function lineChartData(id = 0, year = new Date().getFullYear()) {
 
     return countValue(data, 'line')
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't fetch chart data", 409)
+    throw new ErrorHandler(error.message || "Can't fetch chart data", 500)
   }
 }
 
@@ -69,7 +69,7 @@ async function pieChartData() {
     }
     return chartData
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't fetch chart data", 409)
+    throw new ErrorHandler(error.message || "Can't fetch chart data", 500)
   }
 }
 
@@ -85,7 +85,7 @@ async function summaryData() {
     ])
     return [attendance.value, totalEmployees.value, totalPayout.value]
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't get summary data", 409)
+    throw new ErrorHandler(error.message || "Can't get summary data", 500)
   }
 }
 

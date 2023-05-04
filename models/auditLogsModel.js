@@ -5,7 +5,7 @@ async function createLog(payroll) {
   try {
     await client.insert(payroll).into('hr_audit_logs')
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't create log", 409)
+    throw new ErrorHandler(error.message || "Can't create log", 500)
   }
 }
 

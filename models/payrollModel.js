@@ -23,7 +23,7 @@ async function findAll() {
 
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't fetch payroll", 409)
+    throw new ErrorHandler(error.message || "Can't fetch payroll", 500)
   }
 }
 
@@ -32,7 +32,7 @@ async function findOne(id) {
     const data = await client('hr_payroll').where({ employeeid: id })
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't fetch payroll", 409)
+    throw new ErrorHandler(error.message || "Can't fetch payroll", 500)
   }
 }
 
@@ -87,7 +87,7 @@ async function findPayroll(id) {
 
     return usersWithLogs
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't fetch payroll", 409)
+    throw new ErrorHandler(error.message || "Can't fetch payroll", 500)
   }
 }
 
@@ -96,7 +96,7 @@ async function getEmployeeWithNoTimeout() {
     const data = await client('hr_employee_logs').whereRaw('time_out IS NULL')
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't fetch payroll", 409)
+    throw new ErrorHandler(error.message || "Can't fetch payroll", 500)
   }
 }
 
@@ -106,7 +106,7 @@ async function adjustTimeout(id, timestamp) {
       .where({ id: id })
       .update({ time_out: timestamp })
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't fetch payroll", 409)
+    throw new ErrorHandler(error.message || "Can't fetch payroll", 500)
   }
 }
 

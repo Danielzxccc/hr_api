@@ -6,7 +6,7 @@ async function getAllRecords(table) {
     const data = await client.select('*').from(table)
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || 'error fetching records', 409)
+    throw new ErrorHandler(error.message || 'error fetching records', 500)
   }
 }
 

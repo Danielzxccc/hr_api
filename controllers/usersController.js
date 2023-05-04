@@ -82,7 +82,7 @@ async function createUser(req, res) {
 
         await createLog({
           employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-          activity: 'created an employee',
+          activity: `created an employee ${fullname}`,
           created_at: getCurrentFormat(),
         })
 
@@ -173,7 +173,7 @@ async function updateUser(req, res) {
       if (update) {
         await createLog({
           employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-          activity: 'updated an employee',
+          activity: `updated employee ${fullname}`,
           created_at: getCurrentFormat(),
         })
       }
@@ -221,7 +221,7 @@ async function archiveEmployee(req, res) {
     const archivedUser = await usersModel.archive(id)
     await createLog({
       employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-      activity: 'archived an employee',
+      activity: `archived employee ${archivedUser[0].fullname}`,
       created_at: getCurrentFormat(),
     })
     res.status(201).json({
@@ -240,14 +240,16 @@ async function unarchiveEmployee(req, res) {
     const unarchiveUser = await usersModel.unarchive(id)
     await createLog({
       employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-      activity: `unarchived an employee`,
+      activity: `unarchived employee ${unarchiveUser[0].fullname}`,
       created_at: getCurrentFormat(),
     })
     res.status(200).json({
       message: `Successfully unarchived ${unarchiveUser[0].fullname}.`,
     })
   } catch (error) {
-    res.status(error.httpCode).json({ error: true, message: error.message })
+    res
+      .status(error.httpCode || 400)
+      .json({ error: true, message: error.message })
   }
 }
 
@@ -360,6 +362,13 @@ async function resetPassword(req, res) {
     const hashedPwd = await bcrypt.hash(randomPassword, 10)
 
     const reset = await usersModel.reset(id, hashedPwd)
+
+    await createLog({
+      employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
+      activity: `reset password of employee ${reset[0].fullname}`,
+      created_at: getCurrentFormat(),
+    })
+
     res.status(200).json({
       password: randomPassword,
       data: reset,

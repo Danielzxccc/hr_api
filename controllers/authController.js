@@ -58,7 +58,9 @@ async function authLogin(req, res) {
       }
     }
   } catch (error) {
-    res.status(error.httpCode).json({ error: true, message: error.message })
+    res
+      .status(error.httpCode || 400)
+      .json({ error: true, message: error.message })
   }
 }
 
@@ -129,6 +131,7 @@ async function authLoginViaCard(req, res) {
       return res.status(400).json({
         error: true,
         message: results[0].message,
+        validuntil: results[0].validuntil,
         suspended: true,
       })
 
@@ -193,7 +196,7 @@ async function authLoginViaCard(req, res) {
       if (timeIn[0].time_out !== null) {
         return res
           .status(401)
-          .json({ error: true, message: 'You Already Logged Out' })
+          .json({ error: true, message: 'You Already Timed Out' })
       }
 
       // add overtime functions here soon

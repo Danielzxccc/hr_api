@@ -12,7 +12,7 @@ async function createLog(id) {
       .returning('*')
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't create log", 409)
+    throw new ErrorHandler(error.message || "Can't create log", 500)
   }
 }
 // for hr employees
@@ -24,7 +24,7 @@ async function checkAttendance(id) {
     )
     return data.rows
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't fetch log", 401)
+    throw new ErrorHandler(error.message || "Can't fetch log", 500)
   }
 }
 // for employees outside hr
@@ -36,7 +36,7 @@ async function checkDay(id) {
     )
     return data.rows
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't create log", 401)
+    throw new ErrorHandler(error.message || "Can't create log", 500)
   }
 }
 
@@ -47,7 +47,7 @@ async function findTimeIn(id) {
       .andWhere({ employeeid: id })
     return data
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't find timed in", 400)
+    throw new ErrorHandler(error.message || "Can't find timed in", 500)
   }
 }
 
@@ -58,7 +58,7 @@ async function addTimeOut(id, overtime = 0) {
       [overtime, id]
     )
   } catch (error) {
-    throw new ErrorHandler(error.message || "Can't add timed out", 400)
+    throw new ErrorHandler(error.message || "Can't add timed out", 500)
   }
 }
 
