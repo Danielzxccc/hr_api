@@ -10,7 +10,7 @@ async function create(user) {
   }
 }
 
-async function findUser(filter, suspensions = false) {
+async function findUser(filter, suspensions = false, rfid = false) {
   // console.log(filter)
   try {
     let query = client('users')
@@ -30,7 +30,11 @@ async function findUser(filter, suspensions = false) {
         }
       }
       if (suspensions) {
-        queryBuilder.orWhere({ active: 2 })
+        if (rfid) {
+          queryBuilder.orWhere({ active: 2, rfid: filter.rfid })
+        } else {
+          queryBuilder.orWhere({ active: 2 })
+        }
       }
       queryBuilder.orderBy('id')
     })
@@ -186,6 +190,17 @@ async function getEmployeeList() {
   }
 }
 
+async function getLeaveList() {
+  try {
+    const employees = await client('hr_employee_leave')
+      .select('users.*', 'hr_employee_leave.*')
+      .leftJoin('users', 'users.id', 'hr_employee_leave.employeeid')
+    return employees
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't fetch schedule!", 500)
+  }
+}
+
 async function suspend(id, validuntil, message) {
   try {
     const data = await client('users')
@@ -215,6 +230,7 @@ module.exports = {
   findUser,
   findEmployee,
   getEmployeeList,
+  getLeaveList,
   update,
   findLogs,
   archive,

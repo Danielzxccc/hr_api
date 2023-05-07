@@ -380,6 +380,17 @@ async function resetPassword(req, res) {
   }
 }
 
+async function fetchLeaveList(req, res) {
+  try {
+    const data = await usersModel.getLeaveList()
+    res.status(200).json(data)
+  } catch (error) {
+    res
+      .status(error.httpCode || 400)
+      .json({ error: true, message: error.message })
+  }
+}
+
 module.exports = {
   createUser,
   updateUser,
@@ -388,6 +399,7 @@ module.exports = {
   fetchUsers,
   fetchOneUser,
   fetchUserLogs,
+  fetchLeaveList,
   fetchSingleLog,
   uploadImage,
   fetchArchiveEmployees,

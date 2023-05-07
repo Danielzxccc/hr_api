@@ -73,6 +73,8 @@ async function authAdminCard(req, res) {
       active: 1,
     })
 
+    // ADMIN AUTH ATTENDANCE CHECK
+
     // const checklogs = await checkAttendance(results[0].id)
 
     // if (!checklogs.length) {
@@ -116,6 +118,7 @@ async function authLoginViaCard(req, res) {
         rfid: rfid,
         active: 1,
       },
+      true,
       true
     )
 
@@ -204,7 +207,7 @@ async function authLoginViaCard(req, res) {
       const checkOvertime =
         (createDateObject(getTime()) - createDateObject(shift_timeout)) /
         3600000
-      console.log(checkOvertime)
+
       // if user shift time out is greater than or equal to current time send 200 http status
       if (shiftOut <= currentTime) {
         if (checkOvertime > 0) {
