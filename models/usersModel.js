@@ -64,6 +64,8 @@ async function findLogs(id, startdate = '', enddate = '') {
     let query = client('users')
       .select(
         'users.*',
+        'hr_employee_leave.startdate',
+        'hr_employee_leave.enddate',
         'hr_employee_logs.id as employee_logs_id',
         'hr_employee_logs.log_date',
         'hr_employee_logs.time_in',
@@ -78,6 +80,7 @@ async function findLogs(id, startdate = '', enddate = '') {
         )
       )
       .leftJoin('hr_employee_logs', 'users.id', 'hr_employee_logs.employeeid')
+      .leftJoin('hr_employee_leave', 'users.id', 'hr_employee_leave.employeeid')
 
     const users = await query.modify(function (queryBuilder) {
       if (id) {
@@ -99,14 +102,7 @@ async function findLogs(id, startdate = '', enddate = '') {
     for (const user of users) {
       if (!currentUser || currentUser.id !== user.id) {
         currentUser = {
-          id: user.id,
-          fullname: user.fullname,
-          address: user.address,
-          contact: user.contact,
-          rateperhour: user.rateperhour,
-          email: user.email,
-          department: user.department,
-          role: user.role,
+          ...user,
           logs: [],
         }
         usersWithLogs.push(currentUser)
@@ -179,9 +175,7 @@ async function createSchedule(schedule, id) {
 async function getEmployeeList() {
   try {
     const employess = await client('users')
-      .select('users.*', 'hr_payroll.startdate', 'hr_payroll.enddate')
       .where({ active: 1 })
-      .leftJoin('hr_payroll', 'users.id', 'hr_payroll.employeeid')
       .orderBy('users.id')
 
     return employess

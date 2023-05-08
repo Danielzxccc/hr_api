@@ -131,6 +131,8 @@ async function updateUser(req, res) {
       username,
       department,
       rateperhour,
+      password,
+      newpassword,
       status,
       active,
       fullname,
@@ -166,7 +168,21 @@ async function updateUser(req, res) {
         url = upload.url
       }
 
-      const userObject = { ...jsonData, imgurl: url ? url : imgurl }
+      let hashedPwd
+
+      if (newpassword) {
+        hashedPwd = await bcrypt.hash(newpassword, 10)
+      }
+
+      const userObject = {
+        ...jsonData,
+        imgurl: url ? url : imgurl,
+        password: newpassword ? hashedPwd : password,
+      }
+
+      if (!password) delete userObject.password
+
+      delete userObject.newpassword
 
       const update = await usersModel.update(id, userObject)
 
@@ -365,7 +381,7 @@ async function resetPassword(req, res) {
 
     await createLog({
       employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
-      activity: `reset password of employee ${reset[0].fullname}`,
+      activity: `reset the password for employee ${reset[0].fullname}`,
       created_at: getCurrentFormat(),
     })
 

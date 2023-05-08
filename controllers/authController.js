@@ -21,19 +21,19 @@ async function authLogin(req, res) {
       department: 'hr',
     })
 
-    const checklogs = await checkAttendance(results[0].id)
+    // const checklogs = await checkAttendance(results[0].id)
 
-    if (!checklogs.length)
-      return res.status(400).json({
-        error: true,
-        message:
-          'Warning: It seems that you did not time in before logging in.',
-      })
+    // if (!checklogs.length)
+    //   return res.status(400).json({
+    //     error: true,
+    //     message:
+    //       'Warning: It seems that you did not time in before logging in.',
+    //   })
 
-    if (checklogs[0].time_out)
-      return res
-        .status(400)
-        .json({ error: true, message: 'You already timed out' })
+    // if (checklogs[0].time_out)
+    //   return res
+    //     .status(400)
+    //     .json({ error: true, message: 'You already timed out' })
 
     if (!results.length) {
       res.status(400).json({
