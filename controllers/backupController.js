@@ -1,7 +1,10 @@
 const backupModel = require('../models/backupModel')
+const userModel = require('../models/usersModel')
 const fs = require('fs')
+const bycrpt = require('bcrypt')
 const path = require('path')
-const { getCurrentDate } = require('../utils/getCurrentTime')
+const { getCurrentDate, getCurrentFormat } = require('../utils/getCurrentTime')
+const { createLog } = require('../models/auditLogsModel')
 
 async function getUsersRecords(req, res) {
   try {
@@ -9,6 +12,28 @@ async function getUsersRecords(req, res) {
     res.json(data)
   } catch (error) {
     res.status(error.httpCode || 500).json({
+      error: true,
+      message: error.message,
+    })
+  }
+}
+
+async function confirmPassword(req, res) {
+  try {
+    const { id, password } = req.body
+    const data = await userModel.findUser({
+      id,
+    })
+
+    const user = data[0]
+    const compare = await bycrpt.compare(password, user.password)
+
+    if (!compare) {
+      return res.status(400).json({ error: true, message: 'Access Denied' })
+    }
+    res.status(200).json({ message: 'Access Granted' })
+  } catch (error) {
+    res.status(400).json({
       error: true,
       message: error.message,
     })
@@ -93,6 +118,11 @@ async function exportDateFromTable(req, res) {
   const { table } = req.body
   try {
     const data = await backupModel.getAllRecords(table)
+    await createLog({
+      employeeid: req.session.user[0].id ? req.session.user[0].id : 0,
+      activity: `backed up the table ${table}`,
+      created_at: getCurrentFormat(),
+    })
     res.json(data)
   } catch (error) {
     res.status(error.httpCode || 500).json({
@@ -105,6 +135,7 @@ async function exportDateFromTable(req, res) {
 module.exports = {
   getUsersRecords,
   getUserLogsRecords,
+  confirmPassword,
   getUserPayrolls,
   listFiles,
   exportDateFromTable,

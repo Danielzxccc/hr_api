@@ -7,5 +7,6 @@ router.get('/list', backupController.listFiles)
 router.post('/export', backupController.exportDateFromTable)
 router.get('/logs', backupController.getUserLogsRecords)
 router.get('/payroll', backupController.getUserPayrolls)
+router.post('/confirm', backupController.confirmPassword)
 
 module.exports = router

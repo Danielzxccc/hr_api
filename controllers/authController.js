@@ -21,19 +21,19 @@ async function authLogin(req, res) {
       department: 'hr',
     })
 
-    // const checklogs = await checkAttendance(results[0].id)
+    const checklogs = await checkAttendance(results[0].id)
 
-    // if (!checklogs.length)
-    //   return res.status(400).json({
-    //     error: true,
-    //     message:
-    //       'Warning: It seems that you did not time in before logging in.',
-    //   })
+    if (!checklogs.length)
+      return res.status(400).json({
+        error: true,
+        message:
+          'Warning: It seems that you did not time in before logging in.',
+      })
 
-    // if (checklogs[0].time_out)
-    //   return res
-    //     .status(400)
-    //     .json({ error: true, message: 'You already timed out' })
+    if (checklogs[0].time_out)
+      return res
+        .status(400)
+        .json({ error: true, message: 'You already timed out' })
 
     if (!results.length) {
       res.status(400).json({
@@ -75,20 +75,20 @@ async function authAdminCard(req, res) {
 
     // ADMIN AUTH ATTENDANCE CHECK
 
-    // const checklogs = await checkAttendance(results[0].id)
+    const checklogs = await checkAttendance(results[0].id)
 
-    // if (!checklogs.length) {
-    //   return res.status(400).json({
-    //     error: true,
-    //     message:
-    //       'Warning: It seems that you did not time in before logging in.',
-    //   })
-    // }
+    if (!checklogs.length) {
+      return res.status(400).json({
+        error: true,
+        message:
+          'Warning: It seems that you did not time in before logging in.',
+      })
+    }
 
-    // if (checklogs[0].time_out)
-    //   return res
-    //     .status(400)
-    //     .json({ error: true, message: 'You already timed out' })
+    if (checklogs[0].time_out)
+      return res
+        .status(400)
+        .json({ error: true, message: 'You already timed out' })
 
     if (!results.length) {
       res.status(400).json({
@@ -138,8 +138,9 @@ async function authLoginViaCard(req, res) {
         suspended: true,
       })
 
+    console.log(results[0].schedule)
     //throw error if user doesnt have schedule
-    if (!results[0].schedule)
+    if (!results[0].schedule || !results[0].schedule.length)
       return res.status(400).json({
         error: true,
         message: 'You dont have a schedule',
@@ -163,6 +164,13 @@ async function authLoginViaCard(req, res) {
     const shift_timeout = getCurrentSchedule()[1]
 
     if (!checkLogs.length) {
+      // check day off
+      if (!results[0].schedule.some((item) => item.day === currentDay)) {
+        return res
+          .status(400)
+          .json({ error: true, message: 'You are on day off.' })
+      }
+
       if (
         createDateObject(getTime()) <= createDateObject(shift_timein) ||
         createDateObject(getTime()) >= createDateObject(shift_timeout)
@@ -178,8 +186,6 @@ async function authLoginViaCard(req, res) {
           message: `Successfully timed in as ${results[0].fullname}.`,
           data: generateLog[0],
         })
-      } else {
-        res.status(400).json({ error: true, message: 'You are on day off.' })
       }
 
       // if (
