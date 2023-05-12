@@ -44,6 +44,15 @@ async function findUser(filter, suspensions = false, rfid = false) {
   }
 }
 
+async function findLeave(id) {
+  try {
+    const data = await client('hr_employee_leave').where({ employeeid: id })
+    return data
+  } catch (error) {
+    throw new ErrorHandler(error.message || "Can't Fetch leave!", 500)
+  }
+}
+
 async function findEmployee(rfid) {
   try {
     const data = await client('users')
@@ -227,6 +236,7 @@ module.exports = {
   getLeaveList,
   update,
   findLogs,
+  findLeave,
   archive,
   createSchedule,
   unarchive,

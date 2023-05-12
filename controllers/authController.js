@@ -1,4 +1,4 @@
-const { findUser } = require('../models/usersModel')
+const { findUser, findLeave } = require('../models/usersModel')
 const {
   createLog,
   checkDay,
@@ -138,7 +138,16 @@ async function authLoginViaCard(req, res) {
         suspended: true,
       })
 
-    console.log(results[0].schedule)
+    const checkLeave = await findLeave(results[0].id)
+    const currentDate = new Date()
+
+    if (new Date(checkLeave[checkLeave.length - 1].enddate) < currentDate) {
+      return res.status(400).json({
+        error: true,
+        message: 'You are on leave',
+      })
+    }
+
     //throw error if user doesnt have schedule
     if (!results[0].schedule || !results[0].schedule.length)
       return res.status(400).json({
